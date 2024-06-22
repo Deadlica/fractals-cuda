@@ -1,0 +1,4 @@
+cuda
+cuda-tools
+qt6-base
+opencv
