@@ -1,7 +1,7 @@
 <h1 align="center">Mandelbrot Set With CUDA</h1>
 
 <p align="center">
-    <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/mandelbrot.png" alt="Mandelbrot Set" width="400" height="400">
+    <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/mandelbrot.png" alt="Mandelbrot Set" width="600" height="600">
 </p>
 
 
@@ -70,19 +70,19 @@ Here are some examples of using `--pattern julia`, `--pattern seahorse` and `--p
   <tr>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/julia_island.png" alt="Mandelbrot Set" width="400" height="400">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/julia_island.png" alt="Mandelbrot Set" width="600" height="600">
         <figcaption>Figure 3: Julia Island (Smooth)</figcaption>
       </figure>
     </td>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/seahorse_valley.png" alt="Mandelbrot Set (Smooth)" width="400" height="400">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/seahorse_valley.png" alt="Mandelbrot Set (Smooth)" width="600" height="600">
         <figcaption>Figure 4: Seahorse Valley (Smooth)</figcaption>
       </figure>
     </td>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/sun.png" alt="Mandelbrot Set (Smooth)" width="400" height="400">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/sun.png" alt="Mandelbrot Set (Smooth)" width="600" height="600">
         <figcaption>Figure 5: Sun (Smooth)</figcaption>
       </figure>
     </td>
