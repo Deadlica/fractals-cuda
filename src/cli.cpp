@@ -45,6 +45,8 @@ Options:
     --max-iter <value>      Set the maximum number of iterations per pixel (default: 1500)
     --zoom-factor <value>   Set the zoom factor per iteration (default: 0.99)
     --smooth                Enables smoothing, reduces color bands
+    --theme                 Use a custom defined color theme.
+                            the theme should be placed under 'themes/' and with the '.mt' extension
     --help                  Display this help message
 
 Examples:
@@ -80,8 +82,8 @@ void cli_cast_to_num(char* argv[], int i, double& dst, std::string flag) {
 }
 
 void parse_cli_args(int argc, char* argv[], int& width, int& height,
-                    std::string& pattern, int& max_iter, double& zoom_factor,
-                    bool& smooth) {
+                    std::string& pattern, std::string& theme,
+                    int& max_iter, double& zoom_factor, bool& smooth) {
     for (int i = 1; i < argc; i++) {
         std::string arg = std::string(argv[i]);
         if (arg == "--help") {
@@ -125,6 +127,12 @@ void parse_cli_args(int argc, char* argv[], int& width, int& height,
         else if (arg == "--smooth") {
             smooth = true;
             i--;
+        }
+        else if (arg == "--theme") {
+            if (i + 1 >= argc) {
+                cli_error("Missing a value following --theme");
+            }
+            theme = std::string(argv[i + 1]);
         }
         else {
             cli_error(arg + "is not a valid flag!");

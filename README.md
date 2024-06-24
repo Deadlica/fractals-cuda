@@ -18,10 +18,8 @@ This repository computes the Mandelbrot set utilizing the CUDA library for the m
 
 ## Dependencies
 The following dependencies have been tested and are required to run the project:
-- cuda
-- cuda-tools
-- qt6-base
-- opencv4
+- Cuda Toolkit: https://developer.nvidia.com/accelerated-computing-toolkit
+- SFML library: https://www.sfml-dev.org/download.php
 - GNU Make 4.4.1, or newer
 
 `Note 1: Older versions might work, however, they have not been tested.`
