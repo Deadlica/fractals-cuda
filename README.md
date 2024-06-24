@@ -24,12 +24,12 @@ The following dependencies have been tested and are required to run the project:
 
 `Note 1: Older versions might work, however, they have not been tested.`
 
-`Note 2: In my development environment I've used WSL2 with WSLg for the GUI. Opencv uses QT for the GUI to work properly, hence QT is also required. So far I have not worked on getting it to build in Windows but I will most likely try to it in the future.`
-
 Once you have the necessary dependencies you can compile the project with the following Make command:
 ```bash
 make
 ```
+
+`Note 2: Will create a CMake build when I have time.`
 
 ## Usage
 There are multiple ways in which this project can be run. The program supports multiple CLI arguments that affect how the set is visualized and what parts of the set is computed.

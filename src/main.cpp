@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 
     bool is_dragging = false;
     sf::Vector2i prev_mouse_pos;
-    const int drag_delay_ms = 50;
+    const int drag_delay_ms = 10;
 
     auto last_update = std::chrono::steady_clock::now();
 
