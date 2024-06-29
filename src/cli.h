@@ -15,7 +15,9 @@ struct goal {
 };
 
 extern std::unordered_map<std::string, goal> goals;
+extern std::unordered_map<std::string, goal> custom_goals;
 
+void init_custom_cli_patterns(const std::string& filename);
 void cli_help();
 void cli_error(const std::string& message);
 void cli_cast_to_num(char* argv[], int i, int& dst, std::string flag);

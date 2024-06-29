@@ -1,6 +1,7 @@
 #include "cli.h"
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 std::unordered_map<std::string, goal> goals = {
     {"flower", {
@@ -33,15 +34,39 @@ std::unordered_map<std::string, goal> goals = {
     }}
 };
 
+std::unordered_map<std::string, goal> custom_goals;
+
+void init_custom_cli_patterns(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        return;
+    }
+    double x_min, x_max, y_min, y_max;
+    std::string pattern_name;
+    while (!file.eof()) {
+        file >> pattern_name >> x_min >> y_min >> x_max >> y_max;
+        if (pattern_name.empty()) continue;
+
+        std::pair<std::string, goal> pattern = {pattern_name, {
+                {x_min, y_min},
+                {x_max, y_max}
+        }};
+        custom_goals.emplace(pattern);
+        goals.emplace(pattern);
+    }
+    file.close();
+}
 
 void cli_help() {
-    std::string help_text = R"(
+    std::string help_text1 = R"(
 Usage: mandelbrot [options]
 
 Options:
     --size <value>          Set the width and height of the output image (default: 600)
     --pattern <name>        Choose a predefined pattern to zoom into (default: Mandelbrot)
                             Available patterns: flower, julia, seahorse, starfish, sun, tendrils, tree
+)";
+    std::string help_text2 = R"(
     --max-iter <value>      Set the maximum number of iterations per pixel (default: 1500)
     --zoom-factor <value>   Set the zoom factor per iteration (default: 0.99)
     --smooth                Enables smoothing, reduces color bands
@@ -54,7 +79,24 @@ Examples:
     mandelbrot --size 1000
     mandelbrot --pattern flower --zoom-factor 0.97
 )";
-    std::cout << help_text;
+
+    std::string extra_patterns;
+    if (!custom_goals.empty()) {
+        extra_patterns = R"(                            Custom patterns: )";
+        auto it = custom_goals.begin();
+        auto last = custom_goals.end();
+        for (; it != last; it++) {
+            extra_patterns += it->first;
+            if (std::distance(it, last) > 1) {
+                extra_patterns += ", ";
+            }
+            else {
+                extra_patterns += "\n";
+            }
+        }
+    }
+
+    std::cout << help_text1 + extra_patterns + help_text2;
 }
 
 void cli_error(const std::string& message) {

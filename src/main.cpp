@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "add_pattern.h"
 #include "mandelbrot.h"
 #include <chrono>
 #include <SFML/Graphics.hpp>
@@ -9,7 +10,9 @@
 #include <thread>
 
 const std::string WINDOW_NAME = "Mandelbrot Set";
+const std::string custom_patterns_file = ".patterns.txt";
 constexpr double MIN_SCALE = 5e-15;
+std::atomic<bool> window_running(true);
 
 struct MandelbrotParams {
     int width;
@@ -47,7 +50,7 @@ bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoo
 }
 
 void compute_mandelbrot(MandelbrotParams& params, std::atomic<bool>& dirty, std::mutex& mtx) {
-    while (true) {
+    while (window_running) {
         if (dirty) {
             Color* temp_image = new Color[params.width * params.height];
             mandelbrot(temp_image, params.width, params.height, params.x_min, params.x_max, params.y_min, params.y_max,
@@ -64,17 +67,23 @@ void compute_mandelbrot(MandelbrotParams& params, std::atomic<bool>& dirty, std:
     }
 }
 
+void clear_events(sf::RenderWindow& window) {
+    sf::Event event;
+    while (window.pollEvent(event)) {}
+}
+
 int main(int argc, char* argv[]) {
     int width = 600;
     int height = 600;
     double x_min = -2.0, x_max = 1.0;
     double y_min = -1.5, y_max = 1.5;
 
-    std::string pattern = "";
-    std::string theme = "";
+    std::string pattern;
+    std::string theme;
     int max_iter = 500;
     double zoom_factor = 0.95;
     bool smooth = false;
+    init_custom_cli_patterns(custom_patterns_file);
     parse_cli_args(argc, argv, width, height, pattern, theme, max_iter, zoom_factor, smooth);
     Color *h_image = new Color[width * height];
 
@@ -89,7 +98,7 @@ int main(int argc, char* argv[]) {
     initialize_palette(theme);
     mandelbrot(h_image, width, height, x_min, x_max, y_min, y_max, max_iter, smooth);
 
-    sf::RenderWindow window(sf::VideoMode(width, height), WINDOW_NAME);
+    sf::RenderWindow window(sf::VideoMode(width, height), WINDOW_NAME, sf::Style::Titlebar | sf::Style::Close);
     int monitors = sf::VideoMode::getFullscreenModes().size();
     int x_offset = monitors / 2 * 1920;
 
@@ -109,7 +118,6 @@ int main(int argc, char* argv[]) {
     std::atomic<bool> dirty(false);
     std::mutex mtx;
     std::thread compute_thread(compute_mandelbrot, std::ref(params), std::ref(dirty), std::ref(mtx));
-    compute_thread.detach();
 
     bool is_dragging = false;
     sf::Vector2i prev_mouse_pos;
@@ -129,6 +137,14 @@ int main(int argc, char* argv[]) {
                 switch (event.key.code) {
                 case sf::Keyboard::Escape:
                     window.close();
+                    break;
+                case sf::Keyboard::S:
+                    add_pattern add_pattern_box(params.x_min, params.x_max, params.y_min, params.y_max,
+                                                window.getPosition().x + width / 2, window.getPosition().y + height / 2,
+                                                custom_patterns_file);
+                    add_pattern_box.run();
+                    clear_events(window);
+                    window.setActive();
                     break;
                 }
             }
@@ -169,7 +185,7 @@ int main(int argc, char* argv[]) {
                 double x_center_before = params.x_min + mouse_pos.x * (params.x_max - params.x_min) / params.width;
                 double y_center_before = params.y_min + mouse_pos.y * (params.y_max - params.y_min) / params.height;
 
-                double zoom_factor = (event.mouseWheelScroll.delta > 0) ? params.zoom_factor : 1.0 / params.zoom_factor;
+                zoom_factor = (event.mouseWheelScroll.delta > 0) ? params.zoom_factor : 1.0 / params.zoom_factor;
 
                 if (can_zoom(params.x_min, params.x_max, params.y_min, params.y_max, zoom_factor)) {
                     double new_width = (params.x_max - params.x_min) * zoom_factor;
@@ -199,7 +215,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    delete[] h_image;
+    window_running = false;
+    compute_thread.join();
+    delete[] params.h_image;
     free_palette();
     return 0;
 }
