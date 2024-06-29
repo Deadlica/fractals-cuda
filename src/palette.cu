@@ -61,8 +61,8 @@ std::string get_theme_path(const std::string& theme) {
     if (!starts_with(theme, "themes/")) {
         path = "themes/" + theme;
     }
-    if (!ends_with(theme, ".mt")) {
-        path += ".mt";
+    if (!ends_with(theme, ".mbt")) {
+        path += ".mbt";
     }
 
     return path;
