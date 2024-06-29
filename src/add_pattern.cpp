@@ -1,6 +1,8 @@
 #include "add_pattern.h"
 #include <fstream>
+#include <sstream>
 #include <iostream>
+#include <iomanip>
 
 add_pattern::add_pattern(double x_min, double x_max, double y_min, double y_max, int px, int py, const std::string& filename):
 _width(300), _height(140),
@@ -148,8 +150,9 @@ void add_pattern::run() {
 }
 void add_pattern::save_coords() {
     std::vector<std::string> lines;
-    std::string new_pattern = _input_text + " " + std::to_string(_x_min) + " " + std::to_string(_y_min) + " " +
-                              std::to_string(_x_max) + " " + std::to_string(_y_max);
+    std::ostringstream oss;
+    oss << std::setprecision(16) << _input_text + " " << _x_min << " " << _y_min << " " << _x_max << " " << _y_max;
+    std::string new_pattern = oss.str();
     std::ifstream ifile(_file_name);
     if (ifile.is_open()) {
         std::string line;

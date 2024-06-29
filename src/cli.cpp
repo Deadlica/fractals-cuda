@@ -74,6 +74,11 @@ Options:
                             the theme should be placed under 'themes/' and with the '.mt' extension
     --help                  Display this help message
 
+Hotkeys:
+    S       Save pattern coordinates
+    Home    Reset position
+    Esc     Exit program
+
 Examples:
     mandelbrot --pattern seahorse --smooth
     mandelbrot --size 1000
