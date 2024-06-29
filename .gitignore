@@ -1,3 +1,4 @@
 mandelbrot
 .idea
 cmake-build-debug-wsl
+.patterns
