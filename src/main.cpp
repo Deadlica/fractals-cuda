@@ -1,11 +1,13 @@
 #include "cli.h"
 #include "mandelbrot.h"
 #include <chrono>
+#include <iostream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/VideoMode.hpp>
 
 const std::string WINDOW_NAME = "Mandelbrot Set";
+constexpr double MIN_SCALE = 5e-15;
 
 struct MandelbrotParams {
     int width;
@@ -36,6 +38,13 @@ void update_texture(sf::Texture& texture, Color* h_image, int width, int height)
     delete[] pixels;
 }
 
+bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoom_factor) {
+    double new_width = (x_max - x_min) * zoom_factor;
+    double new_height = (y_max - y_min) * zoom_factor;
+    std::cout << "new_width=" << new_width << ", new_height=" << new_height << std::endl;
+    return new_width >= MIN_SCALE && new_height >= MIN_SCALE;
+}
+
 int main(int argc, char* argv[]) {
     int width = 600;
     int height = 600;
@@ -44,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     std::string pattern = "";
     std::string theme = "";
-    int max_iter = 1500;
+    int max_iter = 500;
     double zoom_factor = 0.95;
     bool smooth = false;
     parse_cli_args(argc, argv, width, height, pattern, theme, max_iter, zoom_factor, smooth);
@@ -130,16 +139,18 @@ int main(int argc, char* argv[]) {
 
                 double zoom_factor = (event.mouseWheelScroll.delta > 0) ? params.zoom_factor : 1.0 / params.zoom_factor;
 
-                double new_width = (params.x_max - params.x_min) * zoom_factor;
-                double new_height = (params.y_max - params.y_min) * zoom_factor;
-                params.x_min = x_center_before - (mouse_pos.x / (double) params.width) * new_width;
-                params.x_max = x_center_before + (1 - mouse_pos.x / (double) params.width) * new_width;
-                params.y_min = y_center_before - (mouse_pos.y / (double) params.height) * new_height;
-                params.y_max = y_center_before + (1 - mouse_pos.y / (double) params.height) * new_height;
+                if (can_zoom(params.x_min, params.x_max, params.y_min, params.y_max, zoom_factor)) {
+                    double new_width = (params.x_max - params.x_min) * zoom_factor;
+                    double new_height = (params.y_max - params.y_min) * zoom_factor;
+                    params.x_min = x_center_before - (mouse_pos.x / (double) params.width) * new_width;
+                    params.x_max = x_center_before + (1 - mouse_pos.x / (double) params.width) * new_width;
+                    params.y_min = y_center_before - (mouse_pos.y / (double) params.height) * new_height;
+                    params.y_max = y_center_before + (1 - mouse_pos.y / (double) params.height) * new_height;
 
-                mandelbrot(params.h_image, params.width, params.height, params.x_min, params.x_max,
-                           params.y_min, params.y_max, params.max_iter, params.smooth);
-                update_texture(texture, params.h_image, params.width, params.height);
+                    mandelbrot(params.h_image, params.width, params.height, params.x_min, params.x_max,
+                               params.y_min, params.y_max, params.max_iter, params.smooth);
+                    update_texture(texture, params.h_image, params.width, params.height);
+                }
             }
         }
         window.clear();

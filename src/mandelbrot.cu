@@ -58,7 +58,7 @@ void mandelbrot(Color* h_image, int width, int height, double x_min,
     size_t image_size = width * height * sizeof(Color);
     cudaMalloc(&d_image, image_size);
 
-    dim3 block_size(16, 16);
+    dim3 block_size(32, 32);
     dim3 grid_size((width + block_size.x - 1) / block_size.x,
                   (height + block_size.y - 1) / block_size.y);
 
