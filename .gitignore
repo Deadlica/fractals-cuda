@@ -1,4 +1,5 @@
 mandelbrot
 .idea
 cmake-build-debug-wsl
+cmake-build-release-wsl
 .patterns

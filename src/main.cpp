@@ -176,10 +176,19 @@ int main(int argc, char* argv[]) {
                 case sf::Keyboard::Home:
                     {
                         std::lock_guard<std::mutex> lock(mtx);
-                        params.x_min = -2.0;
-                        params.x_max = 1.0;
-                        params.y_min = -1.5;
-                        params.y_max = 1.5;
+                        if (!pattern.empty()) {
+                            goal g = goals[pattern];
+                            params.x_min = g.min.x;
+                            params.x_max = g.max.x;
+                            params.y_min = g.min.y;
+                            params.y_max = g.max.y;
+                        }
+                        else {
+                            params.x_min = -2.0;
+                            params.x_max = 1.0;
+                            params.y_min = -1.5;
+                            params.y_max = 1.5;
+                        }
                         dirty = true;
                         force_update = true;
                     }
