@@ -1,10 +1,12 @@
 #include "cli.h"
 #include "mandelbrot.h"
 #include <chrono>
-#include <iostream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/VideoMode.hpp>
+#include <mutex>
+#include <atomic>
+#include <thread>
 
 const std::string WINDOW_NAME = "Mandelbrot Set";
 constexpr double MIN_SCALE = 5e-15;
@@ -41,8 +43,25 @@ void update_texture(sf::Texture& texture, Color* h_image, int width, int height)
 bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoom_factor) {
     double new_width = (x_max - x_min) * zoom_factor;
     double new_height = (y_max - y_min) * zoom_factor;
-    std::cout << "new_width=" << new_width << ", new_height=" << new_height << std::endl;
     return std::abs(new_width) >= MIN_SCALE && std::abs(new_height) >= MIN_SCALE;
+}
+
+void compute_mandelbrot(MandelbrotParams& params, std::atomic<bool>& dirty, std::mutex& mtx) {
+    while (true) {
+        if (dirty) {
+            Color* temp_image = new Color[params.width * params.height];
+            mandelbrot(temp_image, params.width, params.height, params.x_min, params.x_max, params.y_min, params.y_max,
+                       params.max_iter, params.smooth);
+
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                std::swap(params.h_image, temp_image);
+                delete[] temp_image;
+                dirty = false;
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -87,18 +106,31 @@ int main(int argc, char* argv[]) {
     MandelbrotParams params = {width, height, x_min, x_max, y_min, y_max,
                                max_iter, zoom_factor, smooth, h_image};
 
+    std::atomic<bool> dirty(false);
+    std::mutex mtx;
+    std::thread compute_thread(compute_mandelbrot, std::ref(params), std::ref(dirty), std::ref(mtx));
+    compute_thread.detach();
+
     bool is_dragging = false;
     sf::Vector2i prev_mouse_pos;
     const int drag_delay_ms = 10;
+    const int frame_skip = 2;
+    int frame_counter = 0;
 
     auto last_update = std::chrono::steady_clock::now();
 
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed ||
-                event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+            if (event.type == sf::Event::Closed) {
                 window.close();
+            }
+            else if (event.type == sf::Event::KeyPressed) {
+                switch (event.key.code) {
+                case sf::Keyboard::Escape:
+                    window.close();
+                    break;
+                }
             }
 	        else if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
 		        is_dragging = true;
@@ -118,14 +150,14 @@ int main(int argc, char* argv[]) {
                     double dx = (params.x_max - params.x_min) * delta.x / window.getSize().x;
                     double dy = (params.y_max - params.y_min) * delta.y / window.getSize().y;
 
-                    params.x_min -= dx;
-                    params.x_max -= dx;
-                    params.y_min -= dy;
-                    params.y_max -= dy;
-
-		            mandelbrot(params.h_image, params.width, params.height, params.x_min, params.x_max,
-                               params.y_min, params.y_max, params.max_iter, params.smooth);
-                    update_texture(texture, params.h_image, params.width, params.height);
+                    {
+                        std::lock_guard<std::mutex> lock(mtx);
+                        params.x_min -= dx;
+                        params.x_max -= dx;
+                        params.y_min -= dy;
+                        params.y_max -= dy;
+                        dirty = true;
+                    }
 
                     prev_mouse_pos = curr_mouse_pos;
 		            last_update = now;
@@ -142,20 +174,29 @@ int main(int argc, char* argv[]) {
                 if (can_zoom(params.x_min, params.x_max, params.y_min, params.y_max, zoom_factor)) {
                     double new_width = (params.x_max - params.x_min) * zoom_factor;
                     double new_height = (params.y_max - params.y_min) * zoom_factor;
-                    params.x_min = x_center_before - (mouse_pos.x / (double) params.width) * new_width;
-                    params.x_max = x_center_before + (1 - mouse_pos.x / (double) params.width) * new_width;
-                    params.y_min = y_center_before - (mouse_pos.y / (double) params.height) * new_height;
-                    params.y_max = y_center_before + (1 - mouse_pos.y / (double) params.height) * new_height;
-
-                    mandelbrot(params.h_image, params.width, params.height, params.x_min, params.x_max,
-                               params.y_min, params.y_max, params.max_iter, params.smooth);
-                    update_texture(texture, params.h_image, params.width, params.height);
+                    
+                    {
+                        std::lock_guard<std::mutex> lock(mtx);
+                        params.x_min = x_center_before - (mouse_pos.x / (double) params.width) * new_width;
+                        params.x_max = x_center_before + (1 - mouse_pos.x / (double) params.width) * new_width;
+                        params.y_min = y_center_before - (mouse_pos.y / (double) params.height) * new_height;
+                        params.y_max = y_center_before + (1 - mouse_pos.y / (double) params.height) * new_height;
+                        dirty = true;
+                    }
                 }
             }
         }
-        window.clear();
-        window.draw(sprite);
-        window.display();
+
+        if (++frame_counter % frame_skip == 0) {
+            frame_counter = 0;
+            if (dirty) {
+                std::lock_guard<std::mutex> lock(mtx);
+                update_texture(texture, params.h_image, params.width, params.height);
+            }
+            window.clear();
+            window.draw(sprite);
+            window.display();
+        }
     }
 
     delete[] h_image;
