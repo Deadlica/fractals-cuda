@@ -42,7 +42,7 @@ bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoo
     double new_width = (x_max - x_min) * zoom_factor;
     double new_height = (y_max - y_min) * zoom_factor;
     std::cout << "new_width=" << new_width << ", new_height=" << new_height << std::endl;
-    return new_width >= MIN_SCALE && new_height >= MIN_SCALE;
+    return std::abs(new_width) >= MIN_SCALE && std::abs(new_height) >= MIN_SCALE;
 }
 
 int main(int argc, char* argv[]) {
