@@ -123,6 +123,9 @@ void add_pattern::run() {
                 }
                 break;
             }
+            case sf::Event::Resized:
+                _window.setSize(sf::Vector2<unsigned int>(_width, _height));
+                break;
             default:
                 break;
             }

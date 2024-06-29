@@ -249,6 +249,9 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
+            else if (event.type == sf::Event::Resized) {
+                window.setSize(sf::Vector2<unsigned int>(width, height));
+            }
         }
 
         if ((++frame_counter % frame_skip) == 0) {
