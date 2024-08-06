@@ -1,7 +1,10 @@
 #ifndef MENU_H
 #define MENU_H
 
+// SFML
 #include <SFML/Graphics.hpp>
+
+// std
 #include <vector>
 #include <string>
 

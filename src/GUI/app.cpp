@@ -1,13 +1,14 @@
-#include <GUI/app.h>
-#include <thread>
-#include <Fractal/mandelbrot.cuh>
-#include <SFML/Window/Event.hpp>
+// Project
 #include <CLI/cli.h>
-#include <sstream>
-#include <iomanip>
+#include <Fractal/mandelbrot.cuh>
+#include <GUI/app.h>
 #include "GUI/menu.h"
-#include "GUI/coordinate_label.h"
 #include "GUI/add_pattern.h"
+
+// std
+#include <thread>
+
+using namespace std::literals::chrono_literals;
 
 app::app(int argc, char* argv[], int width, int height):
 window_running(true), _width(width), _height(height),
@@ -40,11 +41,8 @@ _y_min(-1.5), _y_max(1.5), _max_iter(500), _zoom_factor(0.95), _smooth(false) {
 }
 
 void app::run() {
-    menu menu(_width, _height);
-    menu.run(_window);
-
-    std::ostringstream oss;
-    oss << std::setprecision(16);
+    //menu menu(_width, _height);
+    //menu.run(_window);
 
     sf::Texture texture;
     texture.create(_width, _height);
@@ -72,128 +70,164 @@ void app::run() {
     auto last_update = std::chrono::steady_clock::now();
 
     while (_window->isOpen()) {
-        sf::Event event;
-        while (_window->pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                _window->close();
-            }
-            else if (event.type == sf::Event::KeyPressed) {
-                switch (event.key.code) {
-                case sf::Keyboard::Escape:
-                    _window->close();
-                    break;
-                case sf::Keyboard::S:
-                {
-                    add_pattern add_pattern_box(params.x_min, params.x_max, params.y_min, params.y_max,
-                                                _window->getPosition().x + _width / 2, _window->getPosition().y + _height / 2,
-                                                custom_patterns_file);
-                    add_pattern_box.run();
-                    clear_events(*_window);
-                    _window->setActive();
-                    break;
-                }
-                case sf::Keyboard::Home:
-                {
-                    std::lock_guard<std::mutex> lock(mtx);
-                    if (!_pattern.empty()) {
-                        goal g = goals[_pattern];
-                        params.x_min = g.min.x;
-                        params.x_max = g.max.x;
-                        params.y_min = g.min.y;
-                        params.y_max = g.max.y;
-                    }
-                    else {
-                        params.x_min = -2.0;
-                        params.x_max = 1.0;
-                        params.y_min = -1.5;
-                        params.y_max = 1.5;
-                    }
-                    dirty = true;
-                    force_update = true;
-                }
-                    frame_counter = frame_skip - 1;
-                    break;
-                }
-            }
-            else if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                is_dragging = true;
-                prev_mouse_pos = sf::Mouse::getPosition(*_window);
-                last_update = std::chrono::steady_clock::now();
-            }
-            else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                is_dragging = false;
-            }
-            else if (event.type == sf::Event::MouseMoved && is_dragging) {
-                auto now = std::chrono::steady_clock::now();
-                auto time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update).count();
-                if (time_passed >= drag_delay_ms) {
-                    sf::Vector2i curr_mouse_pos = sf::Mouse::getPosition(*_window);
-                    sf::Vector2i delta = curr_mouse_pos - prev_mouse_pos;
-
-                    double dx = (params.x_max - params.x_min) * delta.x / _window->getSize().x;
-                    double dy = (params.y_max - params.y_min) * delta.y / _window->getSize().y;
-
-                    {
-                        std::lock_guard<std::mutex> lock(mtx);
-                        params.x_min -= dx;
-                        params.x_max -= dx;
-                        params.y_min -= dy;
-                        params.y_max -= dy;
-                        dirty = true;
-                    }
-
-                    prev_mouse_pos = curr_mouse_pos;
-                    last_update = now;
-                }
-            }
-            else if (event.type == sf::Event::MouseWheelScrolled) {
-                sf::Vector2i mouse_pos = sf::Mouse::getPosition(*_window);
-
-                double x_center_before = params.x_min + mouse_pos.x * (params.x_max - params.x_min) / params.width;
-                double y_center_before = params.y_min + mouse_pos.y * (params.y_max - params.y_min) / params.height;
-
-                _zoom_factor = (event.mouseWheelScroll.delta > 0) ? params.zoom_factor : 1.0 / params.zoom_factor;
-
-                if (can_zoom(params.x_min, params.x_max, params.y_min, params.y_max, _zoom_factor)) {
-                    double new_width = (params.x_max - params.x_min) * _zoom_factor;
-                    double new_height = (params.y_max - params.y_min) * _zoom_factor;
-
-                    {
-                        std::lock_guard<std::mutex> lock(mtx);
-                        params.x_min = x_center_before - (mouse_pos.x / (double) params.width) * new_width;
-                        params.x_max = x_center_before + (1 - mouse_pos.x / (double) params.width) * new_width;
-                        params.y_min = y_center_before - (mouse_pos.y / (double) params.height) * new_height;
-                        params.y_max = y_center_before + (1 - mouse_pos.y / (double) params.height) * new_height;
-                        dirty = true;
-                    }
-                }
-            }
-            else if (event.type == sf::Event::Resized) {
-                _window->setSize(sf::Vector2<unsigned int>(_width, _height));
-            }
-        }
-
-        if ((++frame_counter % frame_skip) == 0) {
-            frame_counter = 0;
-            if (dirty) {
-                while (force_update) continue;
-                std::lock_guard<std::mutex> lock(mtx);
-                update_texture(texture, params.h_image, params.width, params.height);
-                coord_label.set_coordinate_string(params.x_min + (params.x_max - params.x_min) / (double)2.0,
-                                                  params.y_min + (params.y_max - params.y_min) / (double)2.0);
-            }
-
-            _window->clear();
-            _window->draw(sprite);
-            _window->draw(coord_label);
-            _window->display();
-        }
+        handle_events(params, is_dragging, prev_mouse_pos, dirty, force_update, mtx, drag_delay_ms, last_update);
+        update_frame(params, texture, sprite, coord_label, dirty, force_update, frame_counter, frame_skip, mtx);
     }
 
     window_running = false;
     compute_thread.join();
     delete[] params.h_image;
     free_palette();
+}
+
+void app::handle_events(FractalParams& params, bool& is_dragging, sf::Vector2i& prev_mouse_pos,
+                        std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx,
+                        const int drag_delay_ms, std::chrono::steady_clock::time_point& last_update) {
+    sf::Event event;
+    while (_window->pollEvent(event)) {
+        switch (event.type) {
+        case sf::Event::Closed:
+            _window->close();
+            break;
+        case sf::Event::KeyPressed:
+            handle_key_press(event.key, params, dirty, force_update, mtx);
+            break;
+        case sf::Event::MouseButtonPressed:
+            if (event.mouseButton.button == sf::Mouse::Left) {
+                is_dragging = true;
+                prev_mouse_pos = sf::Mouse::getPosition(*_window);
+            }
+            break;
+        case sf::Event::MouseButtonReleased:
+            if (event.mouseButton.button == sf::Mouse::Left) {
+                is_dragging = false;
+            }
+            break;
+        case sf::Event::MouseMoved:
+            if (is_dragging) {
+                handle_mouse_drag(params, prev_mouse_pos, dirty, mtx, drag_delay_ms, last_update);
+            }
+            break;
+        case sf::Event::MouseWheelScrolled:
+            handle_mouse_scroll(event.mouseWheelScroll, params, dirty, mtx);
+            break;
+        case sf::Event::Resized:
+            _window->setSize(sf::Vector2<unsigned int>(_width, _height));
+            break;
+        }
+    }
+}
+
+void app::update_frame(FractalParams& params, sf::Texture& texture, sf::Sprite& sprite,
+                       coordinate_label& coord_label, std::atomic<bool>& dirty,
+                       std::atomic<bool>& force_update, int& frame_counter, const int frame_skip, std::mutex& mtx) {
+    if ((++frame_counter % frame_skip) == 0) {
+        frame_counter = 0;
+        if (dirty) {
+            while (force_update) continue;
+            std::lock_guard<std::mutex> lock(mtx);
+            update_texture(texture, params.h_image, params.width, params.height);
+            coord_label.set_coordinate_string(params.x_min + (params.x_max - params.x_min) / 2.0,
+                                              params.y_min + (params.y_max - params.y_min) / 2.0);
+        }
+
+        _window->clear();
+        _window->draw(sprite);
+        _window->draw(coord_label);
+        _window->display();
+    }
+}
+
+void app::handle_key_press(const sf::Event::KeyEvent& key, FractalParams& params,
+                           std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx) {
+    switch (key.code) {
+    case sf::Keyboard::Escape:
+        _window->close();
+        break;
+    case sf::Keyboard::S:
+        handle_save_pattern(params);
+        break;
+    case sf::Keyboard::Home:
+        reset_view(params, dirty, force_update, mtx);
+        break;
+    }
+}
+
+void app::handle_save_pattern(const FractalParams& params) {
+    add_pattern add_pattern_box(params.x_min, params.x_max, params.y_min, params.y_max,
+                                _window->getPosition().x + _width / 2, _window->getPosition().y + _height / 2,
+                                custom_patterns_file);
+    add_pattern_box.run();
+    clear_events(*_window);
+    _window->setActive();
+}
+
+void app::handle_mouse_drag(FractalParams& params, sf::Vector2i& prev_mouse_pos, std::atomic<bool>& dirty,
+                            std::mutex& mtx, const int drag_delay_ms, std::chrono::steady_clock::time_point& last_update) {
+    auto now = std::chrono::steady_clock::now();
+    auto time_passed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update).count();
+    if (time_passed >= drag_delay_ms) {
+        sf::Vector2i curr_mouse_pos = sf::Mouse::getPosition(*_window);
+        sf::Vector2i delta = curr_mouse_pos - prev_mouse_pos;
+
+        double dx = (params.x_max - params.x_min) * delta.x / _window->getSize().x;
+        double dy = (params.y_max - params.y_min) * delta.y / _window->getSize().y;
+
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            params.x_min -= dx;
+            params.x_max -= dx;
+            params.y_min -= dy;
+            params.y_max -= dy;
+            dirty = true;
+        }
+
+        prev_mouse_pos = curr_mouse_pos;
+        last_update = now;
+    }
+}
+
+void app::handle_mouse_scroll(const sf::Event::MouseWheelScrollEvent& scroll, FractalParams& params,
+                              std::atomic<bool>& dirty, std::mutex& mtx) {
+    sf::Vector2i mouse_pos = sf::Mouse::getPosition(*_window);
+
+    double x_center_before = params.x_min + mouse_pos.x * (params.x_max - params.x_min) / params.width;
+    double y_center_before = params.y_min + mouse_pos.y * (params.y_max - params.y_min) / params.height;
+
+    _zoom_factor = (scroll.delta > 0) ? params.zoom_factor : 1.0 / params.zoom_factor;
+
+    if (can_zoom(params.x_min, params.x_max, params.y_min, params.y_max, _zoom_factor)) {
+        double new_width = (params.x_max - params.x_min) * _zoom_factor;
+        double new_height = (params.y_max - params.y_min) * _zoom_factor;
+
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            params.x_min = x_center_before - (mouse_pos.x / (double) params.width) * new_width;
+            params.x_max = x_center_before + (1 - mouse_pos.x / (double) params.width) * new_width;
+            params.y_min = y_center_before - (mouse_pos.y / (double) params.height) * new_height;
+            params.y_max = y_center_before + (1 - mouse_pos.y / (double) params.height) * new_height;
+            dirty = true;
+        }
+    }
+}
+
+void app::reset_view(FractalParams& params, std::atomic<bool>& dirty,
+                     std::atomic<bool>& force_update, std::mutex& mtx) {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (!_pattern.empty()) {
+        goal g = goals[_pattern];
+        params.x_min = g.min.x;
+        params.x_max = g.max.x;
+        params.y_min = g.min.y;
+        params.y_max = g.max.y;
+    } else {
+        params.x_min = -2.0;
+        params.x_max = 1.0;
+        params.y_min = -1.5;
+        params.y_max = 1.5;
+    }
+    dirty = true;
+    force_update = true;
 }
 
 void app::update_texture(sf::Texture& texture, Color* h_image, int width, int height) {
@@ -233,7 +267,7 @@ void app::compute_mandelbrot(FractalParams& params, std::atomic<bool>& dirty, st
                 force_update = false;
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(10ms);
     }
 }
 

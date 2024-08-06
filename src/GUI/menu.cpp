@@ -1,8 +1,13 @@
+// Project
 #include <GUI/menu.h>
+
+// std
+#include <iostream>
 
 menu::menu(float width, float height) {
     if (!_font.loadFromFile("fonts/arial.ttf")) {
-        // handle error
+        std::cout << "Failed to load font!\nEnsure \"arial.ttf\" is located in fonts/" << std::endl;
+        exit(0);
     }
 
     init_menu(width, height);

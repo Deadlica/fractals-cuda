@@ -1,8 +1,7 @@
 #ifndef COORDINATE_LABEL_H
 #define COORDINATE_LABEL_H
 
-#include <sstream>
-#include <iomanip>
+// SFML
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -10,6 +9,10 @@
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+
+// std
+#include <sstream>
+#include <iomanip>
 
 class coordinate_label : public sf::Drawable, public sf::Transformable {
 public:

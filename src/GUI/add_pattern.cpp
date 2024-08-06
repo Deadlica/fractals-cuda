@@ -1,4 +1,7 @@
+// Project
 #include <GUI/add_pattern.h>
+
+// std
 #include <fstream>
 #include <sstream>
 #include <iostream>

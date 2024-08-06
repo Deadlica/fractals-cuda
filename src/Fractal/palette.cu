@@ -1,5 +1,8 @@
+// Project
 #include <Fractal/palette.cuh>
 #include <Util/util.h>
+
+// std
 #include <vector>
 #include <fstream>
 #include <iostream>

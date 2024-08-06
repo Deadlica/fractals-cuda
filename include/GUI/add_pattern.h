@@ -1,6 +1,7 @@
 #ifndef ADD_PATTERN_WINDOW_H
 #define ADD_PATTERN_WINDOW_H
 
+// SFML
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/VideoMode.hpp>

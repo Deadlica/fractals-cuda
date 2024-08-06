@@ -1,7 +1,10 @@
 #ifndef PALETTE_H
 #define PALETTE_H
 
+// std
 #include <string>
+
+// CUDA
 #include <cuda_runtime.h>
 
 struct Color {
