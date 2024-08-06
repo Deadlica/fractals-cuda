@@ -10,12 +10,12 @@ menu::menu(float width, float height) {
 
 menu::~menu() {}
 
-void menu::run(sf::RenderWindow& window) {
-    while (window.isOpen()) {
+void menu::run(std::unique_ptr<sf::RenderWindow>& window) {
+    while (window->isOpen()) {
         sf::Event event;
-        while (window.pollEvent(event)) {
+        while (window->pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
-                window.close();
+                window->close();
             } else if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Up) {
                     move_up();
@@ -27,7 +27,7 @@ void menu::run(sf::RenderWindow& window) {
                     } else if (_selected_index == 1) {
                         // Options selected
                     } else if (_selected_index == 2) {
-                        window.close();
+                        window->close();
                     }
                 }
             } else if (event.type == sf::Event::MouseButtonPressed) {
@@ -39,9 +39,9 @@ void menu::run(sf::RenderWindow& window) {
 
         update_hover(window);
 
-        window.clear();
+        window->clear();
         draw(window);
-        window.display();
+        window->display();
     }
 }
 
@@ -60,9 +60,9 @@ void menu::init_menu(float width, float height) {
     _selected_index = 0;
 }
 
-void menu::draw(sf::RenderWindow &window) {
+void menu::draw(std::unique_ptr<sf::RenderWindow> &window) {
     for (const auto &option : _menu_options) {
-        window.draw(option);
+        window->draw(option);
     }
 }
 
@@ -82,9 +82,9 @@ void menu::move_down() {
     }
 }
 
-void menu::handle_mouse_click(sf::RenderWindow &window) {
-    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+void menu::handle_mouse_click(std::unique_ptr<sf::RenderWindow>& window) {
+    sf::Vector2i mousePos = sf::Mouse::getPosition(*window);
+    sf::Vector2f worldPos = window->mapPixelToCoords(mousePos);
 
     for (size_t i = 0; i < _menu_options.size(); ++i) {
         sf::FloatRect bounds = _menu_options[i].getGlobalBounds();
@@ -95,16 +95,16 @@ void menu::handle_mouse_click(sf::RenderWindow &window) {
             } else if (_selected_index == 1) {
                 // Options selected
             } else if (_selected_index == 2) {
-                window.close();
+                window->close();
             }
             break;
         }
     }
 }
 
-void menu::update_hover(sf::RenderWindow &window) {
-    sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-    sf::Vector2f world_pos = window.mapPixelToCoords(mouse_pos);
+void menu::update_hover(std::unique_ptr<sf::RenderWindow>& window) {
+    sf::Vector2i mouse_pos = sf::Mouse::getPosition(*window);
+    sf::Vector2f world_pos = window->mapPixelToCoords(mouse_pos);
 
     bool hover_detected = false;
 

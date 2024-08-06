@@ -1,4 +1,3 @@
-#include <CLI/cli.h>
 #include <Fractal/mandelbrot.cuh>
 
 __device__ Color linear_interpolate(const Color& color1, const Color& color2, double t) {

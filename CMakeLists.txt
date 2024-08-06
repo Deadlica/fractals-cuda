@@ -8,6 +8,7 @@ set(SOURCE_FILES
     src/CLI/cli.cpp
     src/Fractal/mandelbrot.cu
     src/Fractal/palette.cu
+    src/GUI/app.cpp
     src/GUI/add_pattern.cpp
     src/GUI/coordinate_label.cpp
     src/GUI/menu.cpp

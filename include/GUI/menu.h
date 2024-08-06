@@ -10,7 +10,7 @@ public:
     menu(float width, float height);
     ~menu();
 
-    void run(sf::RenderWindow& window);
+    void run(std::unique_ptr<sf::RenderWindow>& window);
 
 private:
     int _selected_index;
@@ -18,11 +18,11 @@ private:
     std::vector<sf::Text> _menu_options;
 
     void init_menu(float width, float height);
-    void draw(sf::RenderWindow &window);
+    void draw(std::unique_ptr<sf::RenderWindow>& window);
     void move_up();
     void move_down();
-    void handle_mouse_click(sf::RenderWindow &window);
-    void update_hover(sf::RenderWindow &window);
+    void handle_mouse_click(std::unique_ptr<sf::RenderWindow>& window);
+    void update_hover(std::unique_ptr<sf::RenderWindow>& window);
 };
 
 #endif // MENU_H
