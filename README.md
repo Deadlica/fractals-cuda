@@ -1,7 +1,7 @@
 <h1 align="center">Mandelbrot Set With CUDA</h1>
 
 <p align="center">
-    <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/mandelbrot.png" alt="Mandelbrot Set" width="400" height="400">
+    <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/mandelbrot.png" alt="Mandelbrot Set" width="400" height="400">
 </p>
 
 
@@ -40,13 +40,13 @@ The default setting (no CLI arguments) for the code will display the Mandelbrot 
   <tr>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/mandelbrot.png" alt="Mandelbrot Set" width="400" height="400">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/mandelbrot.png" alt="Mandelbrot Set" width="400" height="400">
         <figcaption>Figure 1: Mandelbrot Set (Standard)</figcaption>
       </figure>
     </td>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/mandelbrot_smooth.png" alt="Mandelbrot Set (Smooth)" width="400" height="400">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/mandelbrot_smooth.png" alt="Mandelbrot Set (Smooth)" width="400" height="400">
         <figcaption>Figure 2: Mandelbrot Set (Smooth)</figcaption>
       </figure>
     </td>
@@ -68,19 +68,19 @@ Here are some examples of using `--pattern julia`, `--pattern seahorse` and `--p
   <tr>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/julia_island.png" alt="Mandelbrot Set" width="250" height="250">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/julia_island.png" alt="Mandelbrot Set" width="250" height="250">
         <figcaption>Figure 3: Julia Island (Smooth)</figcaption>
       </figure>
     </td>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/seahorse_valley.png" alt="Mandelbrot Set (Smooth)" width="250" height="250">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/seahorse_valley.png" alt="Mandelbrot Set (Smooth)" width="250" height="250">
         <figcaption>Figure 4: Seahorse Valley (Smooth)</figcaption>
       </figure>
     </td>
     <td>
       <figure>
-        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/images/sun.png" alt="Mandelbrot Set (Smooth)" width="250" height="250">
+        <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/sun.png" alt="Mandelbrot Set (Smooth)" width="250" height="250">
         <figcaption>Figure 5: Sun (Smooth)</figcaption>
       </figure>
     </td>

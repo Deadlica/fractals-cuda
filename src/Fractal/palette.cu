@@ -35,8 +35,8 @@ int* PALETTE_SIZE = nullptr;
 
 std::string get_theme_path(const std::string& theme) {
     std::string path = theme;
-    if (!util::starts_with(theme, "themes/")) {
-        path = "themes/" + theme;
+    if (!util::starts_with(theme, "assets/themes/")) {
+        path = "assets/themes/" + theme;
     }
     if (!util::ends_with(theme, ".mbt")) {
         path += ".mbt";

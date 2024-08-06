@@ -58,7 +58,7 @@ private:
     void clear_events(sf::RenderWindow& window);
 
     const std::string WINDOW_NAME = "Mandelbrot Set";
-    const std::string custom_patterns_file = ".patterns.txt";
+    const std::string custom_patterns_file = "assets/.patterns.txt";
     static constexpr double MIN_SCALE = 5e-15;
     std::atomic<bool> window_running;
 

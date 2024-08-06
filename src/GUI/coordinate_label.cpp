@@ -4,7 +4,7 @@
 coordinate_label::coordinate_label(): coordinate_label(8) {}
 
 coordinate_label::coordinate_label(unsigned long precision) {
-    _font.loadFromFile("fonts/arial.ttf");
+    _font.loadFromFile("assets/fonts/arial.ttf");
     _label.setFont(_font);
     _label.setCharacterSize(14);
     _label.setFillColor(sf::Color::Black);

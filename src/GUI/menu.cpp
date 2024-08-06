@@ -5,8 +5,8 @@
 #include <iostream>
 
 menu::menu(float width, float height) {
-    if (!_font.loadFromFile("fonts/arial.ttf")) {
-        std::cout << "Failed to load font!\nEnsure \"arial.ttf\" is located in fonts/" << std::endl;
+    if (!_font.loadFromFile("/assets/fonts/arial.ttf")) {
+        std::cout << "Failed to load font!\nEnsure \"arial.ttf\" is located in assets/fonts/" << std::endl;
         exit(0);
     }
 

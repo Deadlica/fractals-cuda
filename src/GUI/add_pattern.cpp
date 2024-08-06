@@ -17,7 +17,7 @@ _x_min(x_min), _x_max(x_max), _y_min(y_min), _y_max(y_max), _file_name(filename)
 
 void add_pattern::run() {
     sf::Font font;
-    if (!font.loadFromFile("fonts/arial.ttf")) {
+    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
         return;
     }
 
