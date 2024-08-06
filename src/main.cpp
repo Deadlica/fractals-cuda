@@ -1,6 +1,8 @@
-#include "cli.h"
-#include "add_pattern.h"
-#include "mandelbrot.h"
+#include "CLI/cli.h"
+#include "GUI/add_pattern.h"
+#include "Fractal/mandelbrot.h"
+#include "GUI/coordinate_label.h"
+#include "GUI/menu.h"
 #include <chrono>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -76,7 +78,7 @@ void clear_events(sf::RenderWindow& window) {
 }
 
 int main(int argc, char* argv[]) {
-    int width = 600;
+    int width = 800;
     int height = 600;
     double x_min = -2.0, x_max = 1.0;
     double y_min = -1.5, y_max = 1.5;
@@ -110,6 +112,9 @@ int main(int argc, char* argv[]) {
         sf::VideoMode::getDesktopMode().height * 0.5 - window.getSize().y * 0.5)
     );
 
+    menu menu(width, height);
+    menu.run(window);
+
     std::ostringstream oss;
     oss << std::setprecision(16);
 
@@ -118,23 +123,9 @@ int main(int argc, char* argv[]) {
     update_texture(texture, h_image, width, height);
     sf::Sprite sprite(texture);
 
-    sf::Font font;
-    font.loadFromFile("fonts/arial.ttf");
-
-    sf::Text coord_label;
-    coord_label.setFont(font);
-    coord_label.setCharacterSize(14);
-    coord_label.setFillColor(sf::Color::Black);
-    coord_label.setString("x = -0.000000\ny = -0.0000000000000000000");
-
-    sf::RectangleShape coord_border(sf::Vector2f(coord_label.getGlobalBounds().width + 10, coord_label.getGlobalBounds().height + 10));
-    oss << "x = " << x_min + (x_max - x_min) / 2.0 << "\ny = " << y_min + (y_max - y_min) / 2.0;
-    coord_label.setString(oss.str());
-    coord_border.setPosition(0, height - coord_border.getSize().y);
-    coord_label.setPosition(5, height - coord_border.getSize().y + 2);
-    coord_border.setFillColor(sf::Color::White);
-    coord_border.setOutlineThickness(1);
-    coord_border.setOutlineColor(sf::Color::Black);
+    coordinate_label coord_label;
+    coord_label.set_position(0, height);
+    coord_label.set_coordinate_string(x_min + (x_max - x_min) / 2.0, y_min + (y_max - y_min) / 2.0);
 
     MandelbrotParams params = {width, height, x_min, x_max, y_min, y_max,
                                max_iter, zoom_factor, smooth, h_image};
@@ -260,14 +251,12 @@ int main(int argc, char* argv[]) {
                 while (force_update) continue;
                 std::lock_guard<std::mutex> lock(mtx);
                 update_texture(texture, params.h_image, params.width, params.height);
-                oss.str("");
-                oss << "x = " << params.x_min + (params.x_max - params.x_min) / (double)2.0 << "\ny = " << params.y_min + (params.y_max - params.y_min) / (double)2.0;
-                coord_label.setString(oss.str());
+                coord_label.set_coordinate_string(params.x_min + (params.x_max - params.x_min) / (double)2.0,
+                                                  params.y_min + (params.y_max - params.y_min) / (double)2.0);
             }
 
             window.clear();
             window.draw(sprite);
-            window.draw(coord_border);
             window.draw(coord_label);
             window.display();
         }

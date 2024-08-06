@@ -1,4 +1,4 @@
-#include "cli.h"
+#include "../CLI/cli.h"
 #include "mandelbrot.h"
 
 __device__ Color linear_interpolate(const Color& color1, const Color& color2, double t) {

@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 3.20)
 project(mandelbrot)
 
 set(CMAKE_CXX_STANDARD 14)
-set(SOURCE_FILES src/main.cpp src/cli.cpp src/add_pattern.cpp src/mandelbrot.cu src/palette.cu)
+set(SOURCE_FILES
+    src/main.cpp
+    src/CLI/cli.cpp
+    src/Fractal/mandelbrot.cu
+    src/Fractal/palette.cu
+    src/GUI/add_pattern.cpp
+    src/GUI/coordinate_label.cpp
+    src/GUI/menu.cpp
+    src/Util/util.cpp
+)
 
 # Set SFML root path for WSL
 set(SFML_ROOT /usr/include/SFML)
@@ -15,9 +24,10 @@ find_package(CUDA REQUIRED)
 
 # Set CUDA compilation flags to a valid architecture (e.g., sm_50 for Maxwell)
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_50")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Wno-deprecated-gpu-targets")
 
 # Add CUDA source files
-cuda_add_library(mandelbrot_cuda src/mandelbrot.cu src/palette.cu)
+cuda_add_library(mandelbrot_cuda src/Fractal/mandelbrot.cu src/Fractal/palette.cu)
 
 # Add the executable
 add_executable(mandelbrot ${SOURCE_FILES})

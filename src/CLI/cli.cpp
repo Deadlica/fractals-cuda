@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "../Util/util.h"
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -62,7 +63,7 @@ void cli_help() {
 Usage: mandelbrot [options]
 
 Options:
-    --size <value>          Set the width and height of the output image (default: 600)
+    --size <dimension>      Set the width and height of the window with "x" as a separator (default: 800x600)
     --pattern <name>        Choose a predefined pattern to zoom into (default: Mandelbrot)
                             Available patterns: flower, julia, seahorse, starfish, sun, tendrils, tree
 )";
@@ -71,7 +72,7 @@ Options:
     --zoom-factor <value>   Set the zoom factor per iteration (default: 0.99)
     --smooth                Enables smoothing, reduces color bands
     --theme                 Use a custom defined color theme.
-                            the theme should be placed under 'themes/' and with the '.mt' extension
+                            the theme should be placed under 'themes/' and with the '.mbt' extension
     --help                  Display this help message
 
 Hotkeys:
@@ -110,22 +111,36 @@ void cli_error(const std::string& message) {
     exit(0);
 }
 
-void cli_cast_to_num(char* argv[], int i, int& dst, std::string flag) {
+void cli_cast_to_num(const std::string& arg, int& dst, const std::string& flag) {
     try {
-        dst = std::stoi(argv[i]);
+        dst = std::stoi(arg);
     }
     catch (...) {
-        cli_error("Expected a integer type value for " + flag);
+        cli_error("Expected a integer type value for " + flag + "\nGot " + arg);
     }
 }
 
-void cli_cast_to_num(char* argv[], int i, double& dst, std::string flag) {
+void cli_cast_to_num(const std::string& arg, double& dst, const std::string& flag) {
     try {
-        dst = std::stod(argv[i]);
+        dst = std::stod(arg);
     }
     catch (...) {
-        cli_error("Expected a double type value for " + flag);
+        cli_error("Expected a double type value for " + flag + "\nGot " + arg);
     }
+}
+
+void parse_size_arg(const std::string& arg, std::string& width, std::string& height) {
+    std::string size_arg = arg;
+    util::to_lowercase(size_arg);
+    size_t sep = arg.find("x");
+    if (sep == std::string::npos) {
+        cli_error("Missing an \"x\" as separator for the dimensions");
+    }
+    if (sep >= size_arg.size() - 1) {
+        cli_error("Missing a height value");
+    }
+    width = size_arg.substr(0, sep);
+    height = size_arg.substr(sep + 1);
 }
 
 void parse_cli_args(int argc, char* argv[], int& width, int& height,
@@ -146,7 +161,15 @@ void parse_cli_args(int argc, char* argv[], int& width, int& height,
             if (i + 1 >= argc) {
                 cli_error("Missing a value following --size");
             }
-            cli_cast_to_num(argv, i + 1, width, arg);
+            std::string s_width;
+            std::string s_height;
+            parse_size_arg(argv[i + 1], s_width, s_height);
+            cli_cast_to_num(s_width, width, "the width of " + arg);
+            cli_cast_to_num(s_height, height, "the height of " + arg);
+            if (width < 100 || height < 100) {
+                width = 800;
+                height = 600;
+            }
         }
         else if (arg == "--pattern") {
             if (i + 1 >= argc) {
@@ -163,13 +186,13 @@ void parse_cli_args(int argc, char* argv[], int& width, int& height,
             if (i + 1 >= argc) {
                 cli_error("Missing a value following --max-iter");
             }
-            cli_cast_to_num(argv, i + 1, max_iter, arg);
+            cli_cast_to_num(argv[i + 1], max_iter, arg);
         }
         else if (arg == "--zoom-factor") {
             if (i + 1 >= argc) {
                 cli_error("Missing a value following --zoom-factor");
             }
-            cli_cast_to_num(argv, i + 1, zoom_factor, arg);
+            cli_cast_to_num(argv[i + 1], zoom_factor, arg);
         }
         else if (arg == "--smooth") {
             smooth = true;

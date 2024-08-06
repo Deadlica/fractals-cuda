@@ -1,4 +1,5 @@
 #include "palette.h"
+#include "../Util/util.h"
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -29,39 +30,12 @@ int v_palette_size = v_palette.size();
 Color* PALETTE = nullptr;
 int* PALETTE_SIZE = nullptr;
 
-void to_lowercase(std::string& str) {
-    for (char& c : str) {
-        c = std::tolower(c);
-    }
-}
-
-bool starts_with(const std::string& str, const std::string& prefix, bool case_insensitive) {
-    std::string tmp_str = str;
-    std::string tmp_prefix = prefix;
-    if (case_insensitive) {
-        to_lowercase(tmp_str);
-        to_lowercase(tmp_prefix);
-    }
-    return tmp_str.find(tmp_prefix) == 0;
-}
-
-bool ends_with(const std::string& str, const std::string& suffix, bool case_insensitive) {
-    std::string tmp_str = str;
-    std::string tmp_suffix = suffix;
-    if (case_insensitive) {
-        to_lowercase(tmp_str);
-        to_lowercase(tmp_suffix);
-    }
-    return tmp_str.size() >= tmp_suffix.size() &&
-           tmp_str.rfind(suffix) == (tmp_str.size() - tmp_suffix.size());
-}
-
 std::string get_theme_path(const std::string& theme) {
     std::string path = theme;
-    if (!starts_with(theme, "themes/")) {
+    if (!util::starts_with(theme, "themes/")) {
         path = "themes/" + theme;
     }
-    if (!ends_with(theme, ".mbt")) {
+    if (!util::ends_with(theme, ".mbt")) {
         path += ".mbt";
     }
 
