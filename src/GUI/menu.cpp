@@ -1,4 +1,4 @@
-#include "menu.h"
+#include <GUI/menu.h>
 
 menu::menu(float width, float height) {
     if (!_font.loadFromFile("fonts/arial.ttf")) {

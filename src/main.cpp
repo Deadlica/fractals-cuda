@@ -1,8 +1,8 @@
-#include "CLI/cli.h"
-#include "GUI/add_pattern.h"
-#include "Fractal/mandelbrot.h"
-#include "GUI/coordinate_label.h"
-#include "GUI/menu.h"
+#include <CLI/cli.h>
+#include <GUI/add_pattern.h>
+#include <Fractal/mandelbrot.cuh>
+#include <GUI/coordinate_label.h>
+#include <GUI/menu.h>
 #include <chrono>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -18,7 +18,7 @@ const std::string custom_patterns_file = ".patterns.txt";
 constexpr double MIN_SCALE = 5e-15;
 std::atomic<bool> window_running(true);
 
-struct MandelbrotParams {
+struct FractalParams {
     int width;
     int height;
     double x_min;
@@ -53,7 +53,7 @@ bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoo
     return std::abs(new_width) >= MIN_SCALE && std::abs(new_height) >= MIN_SCALE;
 }
 
-void compute_mandelbrot(MandelbrotParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx) {
+void compute_mandelbrot(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx) {
     while (window_running) {
         if (dirty) {
             Color* temp_image = new Color[params.width * params.height];
@@ -127,8 +127,8 @@ int main(int argc, char* argv[]) {
     coord_label.set_position(0, height);
     coord_label.set_coordinate_string(x_min + (x_max - x_min) / 2.0, y_min + (y_max - y_min) / 2.0);
 
-    MandelbrotParams params = {width, height, x_min, x_max, y_min, y_max,
-                               max_iter, zoom_factor, smooth, h_image};
+    FractalParams params = {width, height, x_min, x_max, y_min, y_max,
+                            max_iter, zoom_factor, smooth, h_image};
 
     std::atomic<bool> dirty(false);
     std::atomic<bool> force_update(false);

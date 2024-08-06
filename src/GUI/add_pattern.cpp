@@ -1,4 +1,4 @@
-#include "add_pattern.h"
+#include <GUI/add_pattern.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>

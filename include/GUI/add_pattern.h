@@ -24,4 +24,4 @@ private:
     std::string _file_name;
 };
 
-#endif
+#endif // ADD_PATTERN_WINDOW_H

@@ -1,5 +1,5 @@
-#include "../CLI/cli.h"
-#include "mandelbrot.h"
+#include <CLI/cli.h>
+#include <Fractal/mandelbrot.cuh>
 
 __device__ Color linear_interpolate(const Color& color1, const Color& color2, double t) {
     unsigned char r = static_cast<unsigned char>(color1.r + t * (color2.r - color1.r));

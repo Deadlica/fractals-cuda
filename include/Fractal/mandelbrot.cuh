@@ -1,7 +1,7 @@
 #ifndef MANDELBROT_H
 #define MANDELBROT_H
 
-#include "palette.h"
+#include <Fractal/palette.cuh>
 
 __device__ Color linear_interpolate(const Color& color1, const Color& color2, double t);
 
@@ -16,4 +16,4 @@ void mandelbrot(Color* h_image, int width, int height, double x_min,
 
 
 
-#endif
+#endif // MANDELBROT_H

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(mandelbrot)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SOURCE_FILES
     src/main.cpp
     src/CLI/cli.cpp
@@ -23,11 +24,13 @@ find_package(SFML 2.5 COMPONENTS system window graphics REQUIRED)
 find_package(CUDA REQUIRED)
 
 # Set CUDA compilation flags to a valid architecture (e.g., sm_50 for Maxwell)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_50")
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Wno-deprecated-gpu-targets")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_50 -Wno-deprecated-gpu-targets")
 
 # Add CUDA source files
-cuda_add_library(mandelbrot_cuda src/Fractal/mandelbrot.cu src/Fractal/palette.cu)
+cuda_add_library(mandelbrot_cuda
+    src/Fractal/mandelbrot.cu
+    src/Fractal/palette.cu
+)
 
 # Add the executable
 add_executable(mandelbrot ${SOURCE_FILES})
@@ -39,7 +42,14 @@ target_link_libraries(mandelbrot sfml-system sfml-window sfml-graphics)
 target_link_libraries(mandelbrot ${CUDA_LIBRARIES} mandelbrot_cuda)
 
 # Include directories for SFML and CUDA
-target_include_directories(mandelbrot PRIVATE ${SFML_INCLUDE_DIR} ${CUDA_INCLUDE_DIRS})
+target_include_directories(mandelbrot PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${SFML_INCLUDE_DIR}
+    ${CUDA_INCLUDE_DIRS}
+)
 
 # Set properties for the CUDA library
-set_target_properties(mandelbrot_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(mandelbrot_cuda PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON
+    INCLUDE_DIRECTORIES "${PROJECT_SOURCE_DIR}/include"
+)

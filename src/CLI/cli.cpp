@@ -1,5 +1,5 @@
-#include "cli.h"
-#include "../Util/util.h"
+#include <CLI/cli.h>
+#include <Util/util.h>
 #include <algorithm>
 #include <iostream>
 #include <fstream>

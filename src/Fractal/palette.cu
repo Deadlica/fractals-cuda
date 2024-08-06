@@ -1,5 +1,5 @@
-#include "palette.h"
-#include "../Util/util.h"
+#include <Fractal/palette.cuh>
+#include <Util/util.h>
 #include <vector>
 #include <fstream>
 #include <iostream>

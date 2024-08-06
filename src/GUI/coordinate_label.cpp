@@ -1,4 +1,4 @@
-#include "coordinate_label.h"
+#include <GUI/coordinate_label.h>
 
 coordinate_label::coordinate_label(): coordinate_label(8) {}
 
