@@ -1,18 +1,11 @@
 // Project
 #include <Fractal/mandelbrot.cuh>
 
-__device__ Color linear_interpolate(const Color& color1, const Color& color2, double t) {
-    unsigned char r = static_cast<unsigned char>(color1.r + t * (color2.r - color1.r));
-    unsigned char g = static_cast<unsigned char>(color1.g + t * (color2.g - color1.g));
-    unsigned char b = static_cast<unsigned char>(color1.b + t * (color2.b - color1.b));
-    return Color(r, g, b);
-}
-
 __global__ void mandelbrot_kernel(Color* d_image, Color* PALETTE,
-                                 int* palette_size, int width, int height,
-                                 double x_min, double x_max, double y_min,
-                                 double y_max, int max_iter,
-                                 bool smooth) {
+                                  int* palette_size, int width, int height,
+                                  double x_min, double x_max, double y_min,
+                                  double y_max, int max_iter,
+                                  bool smooth) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int idy = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -52,19 +45,25 @@ __global__ void mandelbrot_kernel(Color* d_image, Color* PALETTE,
     }
 }
 
-void mandelbrot(Color* h_image, int width, int height, double x_min,
-                double x_max, double y_min, double y_max, int max_iter, bool smooth) {
+mandelbrot::mandelbrot(): fractal() {}
+
+void mandelbrot::generate(const FractalParams& params) {
     Color* d_image;
-    size_t image_size = width * height * sizeof(Color);
+    size_t image_size = params.width * params.height * sizeof(Color);
     cudaMalloc(&d_image, image_size);
 
     dim3 block_size(32, 32);
-    dim3 grid_size((width + block_size.x - 1) / block_size.x,
-                  (height + block_size.y - 1) / block_size.y);
+    dim3 grid_size(
+        (params.width + block_size.x - 1) / block_size.x,
+        (params.height + block_size.y - 1) / block_size.y
+    );
 
-    mandelbrot_kernel<<<grid_size, block_size>>>(d_image, PALETTE, PALETTE_SIZE,
-                                               width, height, x_min, x_max, y_min,
-                                               y_max, max_iter, smooth);
-    cudaMemcpy(h_image, d_image, image_size, cudaMemcpyDeviceToHost);
+    mandelbrot_kernel<<<grid_size, block_size>>>(
+            d_image, PALETTE, PALETTE_SIZE,params.width, params.height,
+            params.x_min, params.x_max, params.y_min, params.y_max, params.max_iter, params.smooth
+    );
+
+    cudaMemcpy(params.h_image, d_image, image_size, cudaMemcpyDeviceToHost);
+
     cudaFree(d_image);
 }

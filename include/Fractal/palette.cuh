@@ -1,5 +1,5 @@
-#ifndef PALETTE_H
-#define PALETTE_H
+#ifndef PALETTE_CUH
+#define PALETTE_CUH
 
 // std
 #include <string>
@@ -27,5 +27,5 @@ void load_color_theme(const std::string& path);
 void initialize_palette(const std::string& theme);
 void free_palette();
 
-#endif // PALETTE_H
+#endif // PALETTE_CUH
 

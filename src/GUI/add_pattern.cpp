@@ -1,5 +1,6 @@
 // Project
 #include <GUI/add_pattern.h>
+#include <Util/globals.h>
 
 // std
 #include <fstream>
@@ -17,7 +18,7 @@ _x_min(x_min), _x_max(x_max), _y_min(y_min), _y_max(y_max), _file_name(filename)
 
 void add_pattern::run() {
     sf::Font font;
-    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
+    if (!font.loadFromFile(FONT_PATH)) {
         return;
     }
 
@@ -78,10 +79,10 @@ void add_pattern::run() {
             case sf::Event::TextEntered:
                 c = event.text.unicode;
                 if (!std::isalnum(c) && c != '-' && c != '_' && c != '\b') break;
-                if (event.text.unicode == '\b' && !_input_text.empty()) { // Backspace
+                if (c == '\b' && !_input_text.empty()) { // Backspace
                     _input_text.pop_back();
                 }
-                else if (input_text.getGlobalBounds().width < input_border.getSize().x - 20) {
+                else if (input_text.getGlobalBounds().width < input_border.getSize().x - 20 && c != '\b') {
                     _input_text += static_cast<char>(event.text.unicode);
                 }
                 input_text.setString(_input_text);
@@ -89,6 +90,9 @@ void add_pattern::run() {
             case sf::Event::KeyPressed:
                 switch (event.key.code) {
                 case sf::Keyboard::Enter:
+                    if (_input_text.empty()) {
+                        break;
+                    }
                     save_coords();
                     button_clicked = true;
                     animation_clock.restart();
@@ -103,7 +107,7 @@ void add_pattern::run() {
             case sf::Event::MouseButtonPressed:
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     sf::Vector2i mouse_pos = sf::Mouse::getPosition(_window);
-                    if (button.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y)) {
+                    if (button.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y) && !_input_text.empty()) {
                         save_coords();
                         button_clicked = true;
                         animation_clock.restart();

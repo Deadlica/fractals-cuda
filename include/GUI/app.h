@@ -2,8 +2,10 @@
 #define APP_H
 
 // Project
+#include <Fractal/fractal.cuh>
 #include <Fractal/palette.cuh>
 #include <GUI/coordinate_label.h>
+#include <GUI/menu.h>
 
 // SFML
 #include <SFML/Graphics/Texture.hpp>
@@ -14,19 +16,6 @@
 // std
 #include <atomic>
 #include <mutex>
-
-struct FractalParams {
-    int width;
-    int height;
-    double x_min;
-    double x_max;
-    double y_min;
-    double y_max;
-    int max_iter;
-    double zoom_factor;
-    bool smooth;
-    Color* h_image;
-};
 
 class app {
 public:
@@ -52,19 +41,21 @@ private:
                     std::atomic<bool>& force_update, std::mutex& mtx);
 
 
+    void load_fractal(menu::fractal fractal, const FractalParams& params);
     void update_texture(sf::Texture& texture, Color* h_image, int width, int height);
     bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoom_factor);
-    void compute_mandelbrot(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx);
+    void compute_fractal(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx);
     void clear_events(sf::RenderWindow& window);
 
-    const std::string WINDOW_NAME = "Mandelbrot Set";
-    const std::string custom_patterns_file = "assets/.patterns.txt";
+    const std::string WINDOW_NAME = "Fractals";
     static constexpr double MIN_SCALE = 5e-15;
     std::atomic<bool> window_running;
 
     int _width;
     int _height;
+    menu _menu;
     std::unique_ptr<sf::RenderWindow> _window;
+    std::unique_ptr<fractal> _fractal;
     Color* _h_image;
     std::string _pattern;
 

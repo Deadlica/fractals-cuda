@@ -1,20 +1,20 @@
-#ifndef MANDELBROT_H
-#define MANDELBROT_H
+#ifndef MANDELBROT_CUH
+#define MANDELBROT_CUH
 
 // Project
-#include <Fractal/palette.cuh>
-
-__device__ Color linear_interpolate(const Color& color1, const Color& color2, double t);
+#include <Fractal/fractal.cuh>
 
 __global__ void mandelbrot_kernel(Color* d_image, Color* PALETTE,
-                                 int* palette_size, int width, int height,
-                                 double x_min, double x_max, double y_min,
-                                 double y_max, int max_iter,
-                                 bool smooth = true);
+                                  int* palette_size, int width, int height,
+                                  double x_min, double x_max, double y_min,
+                                  double y_max, int max_iter,
+                                  bool smooth = true);
 
-void mandelbrot(Color* h_image, int width, int height, double x_min,
-                double x_max, double y_min, double y_max, int max_iter, bool smooth);
+class mandelbrot : public fractal {
+public:
+    mandelbrot();
 
+    void generate(const FractalParams& params) override;
+};
 
-
-#endif // MANDELBROT_H
+#endif // MANDELBROT_CUH

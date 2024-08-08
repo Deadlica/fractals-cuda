@@ -63,10 +63,10 @@ void init_custom_cli_patterns(const std::string& filename) {
 
 void cli_help() {
     std::string help_text1 = R"(
-Usage: mandelbrot [options]
+Usage: fractals [options]
 
 Options:
-    --size <dimension>      Set the width and height of the window with "x" as a separator (default: 800x600)
+    --size <dimension>      Set the width and height of the window with "x" as a separator (default: 1200x800)
     --pattern <name>        Choose a predefined pattern to zoom into (default: Mandelbrot)
                             Available patterns: flower, julia, seahorse, starfish, sun, tendrils, tree
 )";
@@ -81,12 +81,12 @@ Options:
 Hotkeys:
     S       Save pattern coordinates
     Home    Reset position
-    Esc     Exit program
+    Esc     Exit program / Open menu
 
 Examples:
-    mandelbrot --pattern seahorse --smooth
-    mandelbrot --size 1000
-    mandelbrot --pattern flower --zoom-factor 0.97
+    fractals --pattern seahorse --smooth
+    fractals --size 1000
+    fractals --pattern flower --zoom-factor 0.97
 )";
 
     std::string extra_patterns;

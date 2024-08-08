@@ -1,9 +1,14 @@
 // Project
 #include <CLI/cli.h>
+#include <Fractal/burning_ship.cuh>
+#include <Fractal/julia.cuh>
 #include <Fractal/mandelbrot.cuh>
+#include <Fractal/newton.cuh>
+#include <Fractal/sierpinski.cuh>
 #include <GUI/app.h>
-#include "GUI/menu.h"
-#include "GUI/add_pattern.h"
+#include <GUI/menu.h>
+#include <GUI/add_pattern.h>
+#include <Util/globals.h>
 
 // std
 #include <thread>
@@ -11,11 +16,11 @@
 using namespace std::literals::chrono_literals;
 
 app::app(int argc, char* argv[], int width, int height):
-window_running(true), _width(width), _height(height),
+window_running(true), _width(width), _height(height), _menu(_width, _height),
 _window(nullptr), _pattern(""), _x_min(-2.0), _x_max(1.0),
 _y_min(-1.5), _y_max(1.5), _max_iter(500), _zoom_factor(0.95), _smooth(false) {
     std::string theme;
-    init_custom_cli_patterns(custom_patterns_file);
+    init_custom_cli_patterns(PATTERNS_PATH);
     parse_cli_args(argc, argv, width, height, _pattern, theme, _max_iter, _zoom_factor, _smooth);
     _h_image = new Color[width * height];
 
@@ -28,7 +33,6 @@ _y_min(-1.5), _y_max(1.5), _max_iter(500), _zoom_factor(0.95), _smooth(false) {
     }
 
     initialize_palette(theme);
-    mandelbrot(_h_image, width, height, _x_min, _x_max, _y_min, _y_max, _max_iter, _smooth);
 
     _window = std::make_unique<sf::RenderWindow>(sf::VideoMode(_width, _height), WINDOW_NAME, sf::Style::Titlebar | sf::Style::Close);
     int monitors = sf::VideoMode::getFullscreenModes().size();
@@ -41,8 +45,13 @@ _y_min(-1.5), _y_max(1.5), _max_iter(500), _zoom_factor(0.95), _smooth(false) {
 }
 
 void app::run() {
-    //menu menu(_width, _height);
-    //menu.run(_window);
+    FractalParams params = {_width, _height, _x_min, _x_max, _y_min, _y_max,
+                            _max_iter, _zoom_factor, _smooth, 1e-10, 100, _h_image};
+
+    _menu.run(_window, params);
+    load_fractal(_menu.selected_fractal(), params);
+
+    _fractal->generate(params);
 
     sf::Texture texture;
     texture.create(_width, _height);
@@ -53,13 +62,12 @@ void app::run() {
     coord_label.set_position(0, _height);
     coord_label.set_coordinate_string(_x_min + (_x_max - _x_min) / 2.0, _y_min + (_y_max - _y_min) / 2.0);
 
-    FractalParams params = {_width, _height, _x_min, _x_max, _y_min, _y_max,
-                            _max_iter, _zoom_factor, _smooth, _h_image};
+
 
     std::atomic<bool> dirty(false);
     std::atomic<bool> force_update(false);
     std::mutex mtx;
-    std::thread compute_thread(&app::compute_mandelbrot, this, std::ref(params), std::ref(dirty), std::ref(force_update), std::ref(mtx));
+    std::thread compute_thread(&app::compute_fractal, this, std::ref(params), std::ref(dirty), std::ref(force_update), std::ref(mtx));
 
     bool is_dragging = false;
     sf::Vector2i prev_mouse_pos;
@@ -142,7 +150,12 @@ void app::handle_key_press(const sf::Event::KeyEvent& key, FractalParams& params
                            std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx) {
     switch (key.code) {
     case sf::Keyboard::Escape:
-        _window->close();
+        _menu.run(_window, params);
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            load_fractal(_menu.selected_fractal(), params);
+            dirty = true;
+        }
         break;
     case sf::Keyboard::S:
         handle_save_pattern(params);
@@ -156,7 +169,7 @@ void app::handle_key_press(const sf::Event::KeyEvent& key, FractalParams& params
 void app::handle_save_pattern(const FractalParams& params) {
     add_pattern add_pattern_box(params.x_min, params.x_max, params.y_min, params.y_max,
                                 _window->getPosition().x + _width / 2, _window->getPosition().y + _height / 2,
-                                custom_patterns_file);
+                                PATTERNS_PATH);
     add_pattern_box.run();
     clear_events(*_window);
     _window->setActive();
@@ -230,6 +243,27 @@ void app::reset_view(FractalParams& params, std::atomic<bool>& dirty,
     force_update = true;
 }
 
+void app::load_fractal(menu::fractal fractal, const FractalParams& params) {
+    switch (fractal) {
+    case menu::fractal::MANDELBROT:
+        _fractal = std::make_unique<mandelbrot>();
+        break;
+    case menu::fractal::NEWTON:
+        _fractal = std::make_unique<newton>();
+        break;
+    case menu::fractal::BURNING_SHIP:
+        _fractal = std::make_unique<burning_ship>();
+        break;
+    case menu::fractal::JULIA:
+        _fractal = std::make_unique<julia>();
+        break;
+    case menu::fractal::SIERPINSKI:
+        _fractal = std::make_unique<sierpinski>();
+        break;
+    }
+    _fractal->generate(params);
+}
+
 void app::update_texture(sf::Texture& texture, Color* h_image, int width, int height) {
     sf::Uint8* pixels = new sf::Uint8[width * height * 4];
     for (int y = 0; y < height; y++) {
@@ -252,17 +286,17 @@ bool app::can_zoom(double x_min, double x_max, double y_min, double y_max, doubl
     return std::abs(new_width) >= MIN_SCALE && std::abs(new_height) >= MIN_SCALE;
 }
 
-void app::compute_mandelbrot(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx) {
+void app::compute_fractal(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx) {
     while (window_running) {
         if (dirty) {
-            Color* temp_image = new Color[params.width * params.height];
-            mandelbrot(temp_image, params.width, params.height, params.x_min, params.x_max, params.y_min, params.y_max,
-                       params.max_iter, params.smooth);
+            FractalParams temp_params = params;
+            temp_params.h_image = new Color[params.width * params.height];
+            _fractal->generate(temp_params);
 
             {
                 std::lock_guard<std::mutex> lock(mtx);
-                std::swap(params.h_image, temp_image);
-                delete[] temp_image;
+                std::swap(params.h_image, temp_params.h_image);
+                delete[] temp_params.h_image;
                 dirty = false;
                 force_update = false;
             }
