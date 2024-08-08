@@ -2,7 +2,7 @@
 #define MENU_H
 
 // Project
-#include "Fractal/Params/FractalParams.h"
+#include <Fractal/Params/FractalParams.h>
 #include <GUI/animation.h>
 
 // SFML
