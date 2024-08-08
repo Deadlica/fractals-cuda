@@ -1,5 +1,6 @@
-mandelbrot
+fractals
 .idea
 cmake-build-debug-wsl
 cmake-build-release-wsl
 .patterns.txt
+*.o

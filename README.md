@@ -1,4 +1,5 @@
 <h1 align="center">Mandelbrot Set With CUDA</h1>
+<h4 align="center">(OBS: This README is not up to date, will update once code is finished)</h4>
 
 <p align="center">
     <img src="https://github.com/Deadlica/mandelbrot-cuda/blob/main/assets/images/mandelbrot.png" alt="Mandelbrot Set" width="400" height="400">
