@@ -5,14 +5,15 @@
 // std
 #include <cmath>
 #include <iostream>
-#include <valarray>
 
 menu::menu(float width, float height):
 _current_fractal(menu::fractal::MANDELBROT), _current_mode(mode::MAIN),
-_is_closing(false), _background(animation::Type::SQUARES) {
+_is_closing(false), _settings(nullptr),
+_width(width), _height(height),
+_background(animation::Type::SQUARES) {
     if (!_font.loadFromFile(MENU_FONT_PATH)) {
-        std::cout << "Failed to load font!\nEnsure \"" + MENU_FONT_PATH + "\" exists" << std::endl;
-        exit(0);
+        std::cerr << "Failed to load font!\nEnsure \"" + MENU_FONT_PATH + "\" exists" << std::endl;
+        exit(1);
     }
     _box_color = sf::Color(74, 74, 74);
     _text_color = sf::Color(255, 255, 255);
@@ -30,9 +31,23 @@ _is_closing(false), _background(animation::Type::SQUARES) {
 
 menu::~menu() {}
 
-void menu::run(std::unique_ptr<sf::RenderWindow>& window, FractalParams& params) {
+void menu::run(std::unique_ptr<sf::RenderWindow>& window, FractalParams& params,
+               app_settings* settings,
+               std::function<void(const app_settings&)> on_apply) {
     _is_closing = false;
     _window = window.get();
+    _settings = settings;
+    // Wrap the caller's callback so our own snapshot stays in sync when the
+    // user opens options repeatedly within one menu session.
+    if (on_apply && settings) {
+        auto inner = std::move(on_apply);
+        _on_apply = [inner, settings](const app_settings& s) {
+            inner(s);
+            *settings = s;
+        };
+    } else {
+        _on_apply = std::move(on_apply);
+    }
     _background.initialize(*_window);
 
     while (_window->isOpen()) {
@@ -57,13 +72,19 @@ void menu::run(std::unique_ptr<sf::RenderWindow>& window, FractalParams& params)
                     action(_selected_index[_current_mode]);
                     _current_mode = mode::MAIN;
                     break;
+                default:
+                    break;
                 }
                 break;
             case sf::Event::MouseButtonPressed:
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     handle_mouse_click();
                     _current_mode = mode::MAIN;
+                } else if (event.mouseButton.button == sf::Mouse::Right) {
+                    return;
                 }
+                break;
+            default:
                 break;
             }
         }
@@ -86,7 +107,25 @@ menu::fractal menu::selected_fractal() const {
     return _current_fractal;
 }
 
+void menu::set_fractal(fractal ft) {
+    _current_fractal = ft;
+    int idx = static_cast<int>(ft);
+    auto& texts = _menu_texts[mode::FRACTALS];
+    auto& boxes = _menu_boxes[mode::FRACTALS];
+    if (idx < 0 || static_cast<size_t>(idx) >= texts.size()) return;
+    int prev = _selected_index[mode::FRACTALS];
+    if (prev >= 0 && static_cast<size_t>(prev) < texts.size()) {
+        texts[prev].setFillColor(_text_color);
+        boxes[prev].setFillColor(_box_color);
+    }
+    _selected_index[mode::FRACTALS] = idx;
+    texts[idx].setFillColor(_selected_text_color);
+    boxes[idx].setFillColor(_selected_box_color);
+}
+
 void menu::init_menu(float width, float height) {
+    _menu_boxes.clear();
+    _menu_texts.clear();
     std::vector<std::vector<std::string>> menus = {
         {"Start", "Fractals", "Options", "Exit" },
         {"Mandelbrot", "Newton", "Burning Ship", "Julia", "Sierpinski" }
@@ -123,7 +162,6 @@ void menu::init_menu(float width, float height) {
     _selected_index[_current_mode] = main_buttons::START;
 }
 
-#include <iostream>
 void menu::draw() {
     _background.update(*_window);
     _window->draw(_background);
@@ -227,13 +265,20 @@ void menu::load_fractals_menu() {
                 case sf::Keyboard::Return:
                     action(_selected_index[_current_mode]);
                     return;
+                default:
+                    break;
                 }
                 break;
             case sf::Event::MouseButtonPressed:
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     handle_mouse_click();
                     return;
+                } else if (event.mouseButton.button == sf::Mouse::Right) {
+                    move_to_button(old_index);
+                    return;
                 }
+                break;
+            default:
                 break;
             }
         }
@@ -246,7 +291,20 @@ void menu::load_fractals_menu() {
 }
 
 void menu::load_options_menu() {
-    _current_mode = mode::OPTIONS;
+    if (!_settings) return;
+    run_options_page(*_window, *_settings, _current_fractal, _on_apply);
+    // apply may have resized the window; pull latest size, reset the view,
+    // and rebuild layout if the size changed.
+    sf::Vector2u ws = _window->getSize();
+    _window->setView(sf::View(sf::FloatRect(0, 0, ws.x, ws.y)));
+    if (static_cast<float>(ws.x) != _width || static_cast<float>(ws.y) != _height) {
+        _width = static_cast<float>(ws.x);
+        _height = static_cast<float>(ws.y);
+        init_menu(_width, _height);
+        set_fractal(_current_fractal);
+        _background.initialize(*_window);
+    }
+    _current_mode = mode::MAIN;
 }
 
 void menu::move_to_button(int index) {
@@ -266,7 +324,7 @@ void menu::update_hover() {
     for (size_t i = 0; i < _menu_boxes[_current_mode].size(); ++i) {
         sf::FloatRect bounds = _menu_boxes[_current_mode][i].getGlobalBounds();
         if (bounds.contains(world_pos)) {
-            if (_selected_index[_current_mode] != i) {
+            if (static_cast<size_t>(_selected_index[_current_mode]) != i) {
                 move_to_button(i);
             }
             hover_detected = true;
@@ -274,7 +332,7 @@ void menu::update_hover() {
         }
     }
 
-    if (!hover_detected && _selected_index[_current_mode] >= _begin[_current_mode] && _selected_index[_current_mode] < _menu_texts[_current_mode].size()) {
+    if (!hover_detected && _selected_index[_current_mode] >= _begin[_current_mode] && static_cast<size_t>(_selected_index[_current_mode]) < _menu_texts[_current_mode].size()) {
         _menu_texts[_current_mode][_selected_index[_current_mode]].setFillColor(_selected_text_color);
         _menu_boxes[_current_mode][_selected_index[_current_mode]].setFillColor(_selected_box_color);
     }

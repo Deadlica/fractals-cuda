@@ -15,6 +15,7 @@
 
 // std
 #include <atomic>
+#include <chrono>
 #include <mutex>
 
 class app {
@@ -41,8 +42,13 @@ private:
                     std::atomic<bool>& force_update, std::mutex& mtx);
 
 
-    void load_fractal(menu::fractal fractal, const FractalParams& params);
-    void update_texture(sf::Texture& texture, Color* h_image, int width, int height);
+    void load_fractal(menu::fractal fractal, FractalParams& params);
+    void apply_settings(const struct app_settings& s, FractalParams& params);
+    void apply_viewport(FractalParams& params, const viewport& v);
+    void sync_julia_c(FractalParams& params);
+    void start_sierpinski_animation();
+    void tick_sierpinski_animation(FractalParams& params, std::atomic<bool>& dirty, std::mutex& mtx);
+    void update_texture(sf::Texture& texture, uchar4* h_image);
     bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoom_factor);
     void compute_fractal(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx);
     void clear_events(sf::RenderWindow& window);
@@ -50,14 +56,20 @@ private:
     const std::string WINDOW_NAME = "Fractals";
     static constexpr double MIN_SCALE = 5e-15;
     std::atomic<bool> window_running;
+    std::atomic<bool> _compute_paused;
+    std::atomic<bool> _compute_idle;
 
     int _width;
     int _height;
-    menu _menu;
+    std::unique_ptr<menu> _menu;
     std::unique_ptr<sf::RenderWindow> _window;
     std::unique_ptr<fractal> _fractal;
-    Color* _h_image;
+    fractal_type _fractal_type;
+    uchar4* _h_image;  // current host image buffer (always == params.h_image; see compute_fractal)
+    sf::Texture _texture;
+    bool _sprite_dirty;
     std::string _pattern;
+    std::string _current_theme;
 
     double _x_min;
     double _x_max;
@@ -66,6 +78,13 @@ private:
     int _max_iter;
     double _zoom_factor;
     bool _smooth;
+    double _c_re;
+    double _c_im;
+
+    // Sierpinski build-up animation state
+    static constexpr int SIERPINSKI_STEP_MS = 250;
+    std::chrono::steady_clock::time_point _sierp_anim_start;
+    bool _sierp_anim_running;
 };
 
 

@@ -20,7 +20,7 @@ struct Color {
 };
 
 extern Color* PALETTE;
-extern int* PALETTE_SIZE;
+extern int PALETTE_SIZE;
 
 std::string get_theme_path(const std::string& theme);
 void load_color_theme(const std::string& path);
@@ -28,4 +28,3 @@ void initialize_palette(const std::string& theme);
 void free_palette();
 
 #endif // PALETTE_CUH
-

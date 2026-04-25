@@ -1,6 +1,11 @@
 fractals
 .idea
+.vscode
 cmake-build-debug-wsl
 cmake-build-release-wsl
 .patterns.txt
 *.o
+*.bak
+*.bak2
+*.swp
+*.iml

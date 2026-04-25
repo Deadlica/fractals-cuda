@@ -1,6 +1,9 @@
 #ifndef CLI_H
 #define CLI_H
 
+// Project
+#include <Fractal/fractal_type.h>
+
 // std
 #include <string>
 #include <unordered_map>
@@ -13,11 +16,9 @@ struct coord {
 struct goal {
     coord min;
     coord max;
-};
-
-struct size_arg {
-    size_t width;
-    size_t height;
+    fractal_type type;
+    double c_re;  // only meaningful when type == JULIA
+    double c_im;
 };
 
 extern std::unordered_map<std::string, goal> goals;
@@ -28,9 +29,9 @@ void cli_help();
 void cli_error(const std::string& message);
 void cli_cast_to_num(const std::string& arg, int& dst, const std::string& flag);
 void cli_cast_to_num(const std::string& arg, double& dst, const std::string& flag);
-void parse_size_arg(const std::string& size);
 void parse_cli_args(int argc, char* argv[], int& width, int& height,
                     std::string& pattern, std::string& theme,
-                    int& max_iter, double& zoom_factor, bool& smooth);
+                    int& max_iter, double& zoom_factor, bool& smooth,
+                    double& julia_c_re, double& julia_c_im, bool& julia_c_set);
 
 #endif // CLI_H

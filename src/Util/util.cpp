@@ -18,12 +18,12 @@ bool util::starts_with(const std::string& str, const std::string& prefix, bool c
 }
 
 bool util::ends_with(const std::string& str, const std::string& suffix, bool case_insensitive) {
-    std::string tmp_str = str;
-    std::string tmp_suffix = suffix;
+    if (str.size() < suffix.size()) return false;
+    std::string tail = str.substr(str.size() - suffix.size());
+    std::string suf = suffix;
     if (case_insensitive) {
-        to_lowercase(tmp_str);
-        to_lowercase(tmp_suffix);
+        to_lowercase(tail);
+        to_lowercase(suf);
     }
-    return tmp_str.size() >= tmp_suffix.size() &&
-           tmp_str.rfind(suffix) == (tmp_str.size() - tmp_suffix.size());
+    return tail == suf;
 }

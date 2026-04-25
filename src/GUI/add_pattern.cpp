@@ -8,10 +8,13 @@
 #include <iostream>
 #include <iomanip>
 
-add_pattern::add_pattern(double x_min, double x_max, double y_min, double y_max, int px, int py, const std::string& filename):
+add_pattern::add_pattern(double x_min, double x_max, double y_min, double y_max,
+                         int px, int py, const std::string& filename,
+                         fractal_type type, double c_re, double c_im):
 _width(300), _height(140),
 _window(sf::VideoMode(_width, _height), "Save Pattern", sf::Style::Titlebar | sf::Style::Close),
-_x_min(x_min), _x_max(x_max), _y_min(y_min), _y_max(y_max), _file_name(filename) {
+_x_min(x_min), _x_max(x_max), _y_min(y_min), _y_max(y_max),
+_file_name(filename), _type(type), _c_re(c_re), _c_im(c_im) {
 
     _window.setPosition(sf::Vector2i(px - _width / 2, py - _height / 2));
 }
@@ -112,6 +115,8 @@ void add_pattern::run() {
                         button_clicked = true;
                         animation_clock.restart();
                     }
+                } else if (event.mouseButton.button == sf::Mouse::Right) {
+                    _window.close();
                 }
                 break;
             case sf::Event::MouseMoved:
@@ -161,7 +166,11 @@ void add_pattern::run() {
 void add_pattern::save_coords() {
     std::vector<std::string> lines;
     std::ostringstream oss;
-    oss << std::setprecision(16) << _input_text + " " << _x_min << " " << _y_min << " " << _x_max << " " << _y_max;
+    oss << std::setprecision(16) << _input_text << " " << fractal_type_to_string(_type)
+        << " " << _x_min << " " << _y_min << " " << _x_max << " " << _y_max;
+    if (_type == fractal_type::JULIA) {
+        oss << " " << _c_re << " " << _c_im;
+    }
     std::string new_pattern = oss.str();
     std::ifstream ifile(_file_name);
     if (ifile.is_open()) {

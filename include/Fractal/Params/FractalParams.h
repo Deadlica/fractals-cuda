@@ -1,8 +1,8 @@
 #ifndef FRACTALPARAMS_H
 #define FRACTALPARAMS_H
 
-// Project
-#include <Fractal/palette.cuh>
+// CUDA
+#include <vector_types.h>
 
 struct FractalParams {
     int width;
@@ -16,7 +16,9 @@ struct FractalParams {
     bool smooth;
     double tolerance;
     int depth;
-    Color* h_image;
+    double c_re;
+    double c_im;
+    uchar4* h_image;
 };
 
 #endif // FRACTALPARAMS_H

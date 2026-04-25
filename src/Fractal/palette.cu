@@ -31,7 +31,7 @@ int v_palette_size = v_palette.size();
 
 
 Color* PALETTE = nullptr;
-int* PALETTE_SIZE = nullptr;
+int PALETTE_SIZE = 0;
 
 std::string get_theme_path(const std::string& theme) {
     std::string path = theme;
@@ -95,17 +95,14 @@ void initialize_palette(const std::string& theme) {
         load_color_theme(file_name);
     }
 
+    PALETTE_SIZE = static_cast<int>(v_palette.size());
     size_t palette_size = v_palette.size() * sizeof(Color);
-    size_t int_size = sizeof(v_palette_size);
 
     cudaMalloc(&PALETTE, palette_size);
-    cudaMalloc(&PALETTE_SIZE, int_size);
-
     cudaMemcpy(PALETTE, v_palette.data(), palette_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(PALETTE_SIZE, &v_palette_size, int_size, cudaMemcpyHostToDevice);
 }
 
 void free_palette() {
     cudaFree(PALETTE);
-    cudaFree(PALETTE_SIZE);
+    PALETTE = nullptr;
 }

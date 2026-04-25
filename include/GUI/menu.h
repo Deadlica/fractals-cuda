@@ -3,12 +3,15 @@
 
 // Project
 #include <Fractal/Params/FractalParams.h>
+#include <Fractal/fractal_type.h>
 #include <GUI/animation.h>
+#include <GUI/options_page.h>
 
 // SFML
 #include <SFML/Graphics.hpp>
 
 // std
+#include <functional>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -18,10 +21,13 @@ public:
     menu(float width, float height);
     ~menu();
 
-    enum class fractal { MANDELBROT, NEWTON, BURNING_SHIP, JULIA, SIERPINSKI };
+    using fractal = fractal_type;
 
-    void run(std::unique_ptr<sf::RenderWindow>& window, FractalParams& params);
+    void run(std::unique_ptr<sf::RenderWindow>& window, FractalParams& params,
+             app_settings* settings = nullptr,
+             std::function<void(const app_settings&)> on_apply = nullptr);
     menu::fractal selected_fractal() const;
+    void set_fractal(fractal ft);
 
 private:
     enum main_buttons { START, FRACTALS, OPTIONS, EXIT };
@@ -33,6 +39,10 @@ private:
     fractal _current_fractal;
     mode _current_mode;
     bool _is_closing;
+    app_settings* _settings;
+    std::function<void(const app_settings&)> _on_apply;
+    float _width;
+    float _height;
 
     sf::Font _font;
     animation _background;

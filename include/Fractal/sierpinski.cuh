@@ -4,9 +4,10 @@
 // Project
 #include <Fractal/fractal.cuh>
 
-__device__ int inside_sierpinski_triangle(int x, int y, int depth);
-
-__global__ void sierpinski_kernel(Color* image, int width, int height, int depth);
+__global__ void sierpinski_kernel(uchar4* image, int width, int height,
+                                  int depth,
+                                  double x_min, double x_max,
+                                  double y_min, double y_max);
 
 class sierpinski : public fractal {
 public:

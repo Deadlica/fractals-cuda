@@ -1,7 +1,7 @@
 CXX := g++
 NVCC := nvcc
-CXXFLAGS := -std=c++14 -O3
-NVCCFLAGS := -arch=sm_50 -Wno-deprecated-gpu-targets
+CXXFLAGS := -std=c++14 -O3 -Wall
+NVCCFLAGS := -O3 -arch=sm_86
 
 # Include directories
 INCLUDES := -Iinclude -I/usr/include/SFML -I/usr/local/cuda/include
@@ -20,6 +20,10 @@ SRC_CPP := src/main.cpp \
            src/GUI/app.cpp \
 	   src/GUI/coordinate_label.cpp \
 	   src/GUI/menu.cpp \
+	   src/GUI/options_page.cpp \
+	   src/GUI/Widgets/checkbox.cpp \
+	   src/GUI/Widgets/dropdown.cpp \
+	   src/GUI/Widgets/numeric_input_field.cpp \
            src/Util/globals.cpp \
 	   src/Util/util.cpp
 
@@ -52,4 +56,4 @@ $(TARGET): $(OBJ_CPP) $(OBJ_CU)
 	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm $(TARGET)
+	rm -f $(TARGET)
