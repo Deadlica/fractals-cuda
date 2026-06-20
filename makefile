@@ -1,6 +1,6 @@
 CXX := g++
 NVCC := nvcc
-CXXFLAGS := -std=c++14 -O3 -Wall
+CXXFLAGS := -std=c++17 -O3 -Wall
 NVCCFLAGS := -O3 -arch=sm_86
 
 # Include directories
@@ -28,10 +28,14 @@ SRC_CPP := src/main.cpp \
 	   src/Util/util.cpp
 
 SRC_CU := src/Fractal/fractal.cu \
+	  src/Fractal/barnsley.cu \
 	  src/Fractal/burning_ship.cu \
 	  src/Fractal/julia.cu \
+	  src/Fractal/lyapunov.cu \
           src/Fractal/mandelbrot.cu \
+	  src/Fractal/multibrot.cu \
 	  src/Fractal/newton.cu \
+	  src/Fractal/nova.cu \
 	  src/Fractal/palette.cu \
           src/Fractal/sierpinski.cu
 

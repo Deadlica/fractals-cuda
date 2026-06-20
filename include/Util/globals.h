@@ -10,5 +10,6 @@ extern const std::string IMAGES_PATH;
 extern const std::string FONT_PATH;
 extern const std::string MENU_FONT_PATH;
 extern const std::string PATTERNS_PATH;
+extern const std::string SCREENSHOTS_PATH;
 
 #endif // GLOBALS_H

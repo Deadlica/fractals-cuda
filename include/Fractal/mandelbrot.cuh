@@ -7,7 +7,7 @@
 __global__ void mandelbrot_kernel(uchar4* d_image, const Color* palette, int palette_size,
                                   int width, int height,
                                   double x_min, double x_max, double y_min, double y_max,
-                                  int max_iter, bool smooth);
+                                  int max_iter, bool smooth, int step);
 
 class mandelbrot : public fractal {
 public:

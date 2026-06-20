@@ -133,11 +133,22 @@ const std::string& dropdown::selected_value() const {
 
 void dropdown::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     if (!_visible) return;
-    target.draw(_label, states);
-    target.draw(_field, states);
-    target.draw(_field_text, states);
-    target.draw(_caret, states);
-    if (_open) {
+    sf::Text lbl = _label;
+    sf::RectangleShape field = _field;
+    sf::Text fld_text = _field_text;
+    sf::Text caret = _caret;
+    if (!_enabled) {
+        sf::Color g(160, 160, 160);
+        lbl.setFillColor(g);
+        field.setFillColor(sf::Color(235, 235, 235));
+        fld_text.setFillColor(g);
+        caret.setFillColor(g);
+    }
+    target.draw(lbl, states);
+    target.draw(field, states);
+    target.draw(fld_text, states);
+    target.draw(caret, states);
+    if (_open && _enabled) {
         for (size_t i = 0; i < _item_boxes.size(); i++) {
             sf::RectangleShape box = _item_boxes[i];
             if (static_cast<int>(i) == _hover) box.setFillColor(sf::Color(220, 230, 255));

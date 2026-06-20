@@ -23,7 +23,7 @@ _background(animation::Type::SQUARES) {
     _begin[mode::FRACTALS] = fractal_buttons::MANDELBROT;
     _begin[mode::OPTIONS] = option_buttons::SIZE;
     _end[mode::MAIN] = main_buttons::EXIT;
-    _end[mode::FRACTALS] = fractal_buttons::SIERPINSKI;
+    _end[mode::FRACTALS] = fractal_buttons::LYAPUNOV;
     _end[mode::OPTIONS] = option_buttons::MAX_ITER;
 
     init_menu(width, height);
@@ -80,8 +80,6 @@ void menu::run(std::unique_ptr<sf::RenderWindow>& window, FractalParams& params,
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     handle_mouse_click();
                     _current_mode = mode::MAIN;
-                } else if (event.mouseButton.button == sf::Mouse::Right) {
-                    return;
                 }
                 break;
             default:
@@ -128,7 +126,7 @@ void menu::init_menu(float width, float height) {
     _menu_texts.clear();
     std::vector<std::vector<std::string>> menus = {
         {"Start", "Fractals", "Options", "Exit" },
-        {"Mandelbrot", "Newton", "Burning Ship", "Julia", "Sierpinski" }
+        {"Mandelbrot", "Newton", "Burning Ship", "Julia", "Sierpinski", "Multibrot", "Nova", "Barnsley", "Lyapunov" }
     };
     std::vector<mode> modes = { mode::MAIN, mode::FRACTALS };
     float box_width = width * 0.3;
@@ -233,6 +231,18 @@ void menu::action(int index) {
             break;
         case fractal_buttons::SIERPINSKI:
             _current_fractal = fractal::SIERPINSKI;
+            break;
+        case fractal_buttons::MULTIBROT:
+            _current_fractal = fractal::MULTIBROT;
+            break;
+        case fractal_buttons::NOVA:
+            _current_fractal = fractal::NOVA;
+            break;
+        case fractal_buttons::BARNSLEY:
+            _current_fractal = fractal::BARNSLEY;
+            break;
+        case fractal_buttons::LYAPUNOV:
+            _current_fractal = fractal::LYAPUNOV;
             break;
         }
         break;

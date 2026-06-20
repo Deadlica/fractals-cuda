@@ -48,6 +48,7 @@ private:
     void sync_julia_c(FractalParams& params);
     void start_sierpinski_animation();
     void tick_sierpinski_animation(FractalParams& params, std::atomic<bool>& dirty, std::mutex& mtx);
+    void tick_zoom_animation(FractalParams& params, std::atomic<bool>& dirty, std::mutex& mtx);
     void update_texture(sf::Texture& texture, uchar4* h_image);
     bool can_zoom(double x_min, double x_max, double y_min, double y_max, double zoom_factor);
     void compute_fractal(FractalParams& params, std::atomic<bool>& dirty, std::atomic<bool>& force_update, std::mutex& mtx);
@@ -58,6 +59,8 @@ private:
     std::atomic<bool> window_running;
     std::atomic<bool> _compute_paused;
     std::atomic<bool> _compute_idle;
+    std::atomic<int>  _progressive_stage;
+    std::chrono::steady_clock::time_point _last_interaction;
 
     int _width;
     int _height;
@@ -66,6 +69,7 @@ private:
     std::unique_ptr<fractal> _fractal;
     fractal_type _fractal_type;
     uchar4* _h_image;  // current host image buffer (always == params.h_image; see compute_fractal)
+    uchar4* _h_image_back;  // compute thread's scratch buffer, swapped with _h_image each cycle
     sf::Texture _texture;
     bool _sprite_dirty;
     std::string _pattern;
@@ -80,11 +84,26 @@ private:
     bool _smooth;
     double _c_re;
     double _c_im;
+    int _multibrot_n;
+    bool _fullscreen;
+    sf::Vector2i _windowed_pos;
 
     // Sierpinski build-up animation state
     static constexpr int SIERPINSKI_STEP_MS = 250;
     std::chrono::steady_clock::time_point _sierp_anim_start;
     bool _sierp_anim_running;
+
+    // Wheel zoom smooth animation state
+    static constexpr int ZOOM_ANIM_MS = 120;
+    std::chrono::steady_clock::time_point _zoom_anim_start;
+    bool _zoom_anim_running;
+    double _zoom_src_xmin, _zoom_src_xmax, _zoom_src_ymin, _zoom_src_ymax;
+    double _zoom_dst_xmin, _zoom_dst_xmax, _zoom_dst_ymin, _zoom_dst_ymax;
+
+    // Transient on-screen toast
+    std::string _toast_text;
+    std::chrono::steady_clock::time_point _toast_until;
+    void show_toast(const std::string& msg, int duration_ms = 2000);
 };
 
 

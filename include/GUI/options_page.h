@@ -18,13 +18,15 @@
 struct app_settings {
     int width;
     int height;
-    std::string pattern;   // empty = none
-    std::string theme;     // empty = default
+    std::string pattern;
+    std::string theme;
     int max_iter;
     double zoom_factor;
     bool smooth;
     double julia_c_re;
     double julia_c_im;
+    int multibrot_n;
+    bool fullscreen;
 };
 
 inline bool operator==(const app_settings& a, const app_settings& b) {
@@ -32,7 +34,8 @@ inline bool operator==(const app_settings& a, const app_settings& b) {
            a.pattern == b.pattern && a.theme == b.theme &&
            a.max_iter == b.max_iter && a.zoom_factor == b.zoom_factor &&
            a.smooth == b.smooth && a.julia_c_re == b.julia_c_re &&
-           a.julia_c_im == b.julia_c_im;
+           a.julia_c_im == b.julia_c_im && a.multibrot_n == b.multibrot_n &&
+           a.fullscreen == b.fullscreen;
 }
 inline bool operator!=(const app_settings& a, const app_settings& b) { return !(a == b); }
 

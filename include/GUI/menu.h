@@ -31,7 +31,7 @@ public:
 
 private:
     enum main_buttons { START, FRACTALS, OPTIONS, EXIT };
-    enum fractal_buttons { MANDELBROT, NEWTON, BURNING_SHIP, JULIA, SIERPINSKI };
+    enum fractal_buttons { MANDELBROT, NEWTON, BURNING_SHIP, JULIA, SIERPINSKI, MULTIBROT, NOVA, BARNSLEY, LYAPUNOV };
     enum option_buttons { SIZE, MAX_ITER }; // wip
     enum class mode { MAIN, FRACTALS, OPTIONS };
 

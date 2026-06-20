@@ -18,6 +18,8 @@ struct FractalParams {
     int depth;
     double c_re;
     double c_im;
+    int multibrot_n;
+    int step;   // pixel block size (1 = full quality)
     uchar4* h_image;
 };
 

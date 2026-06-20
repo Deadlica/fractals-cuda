@@ -164,15 +164,25 @@ void run_options_page(sf::RenderWindow& window, const app_settings& initial,
                               initial.julia_c_re, 120);
     numeric_input_field jim_f(font, "Julia c (im)", numeric_input_field::kind::DOUBLE,
                               initial.julia_c_im, 120);
+    numeric_input_field mn_f(font, "Multibrot power (2-8)", numeric_input_field::kind::INT,
+                             initial.multibrot_n, 120);
+    checkbox fullscreen_cb(font, "Fullscreen", initial.fullscreen);
 
     bool is_escape_time = (current_fractal == fractal_type::MANDELBROT ||
                            current_fractal == fractal_type::JULIA      ||
                            current_fractal == fractal_type::BURNING_SHIP ||
-                           current_fractal == fractal_type::NEWTON);
+                           current_fractal == fractal_type::NEWTON      ||
+                           current_fractal == fractal_type::MULTIBROT   ||
+                           current_fractal == fractal_type::NOVA);
     max_iter_f.set_visible(is_escape_time);
-    smooth_cb .set_visible(is_escape_time);
+    smooth_cb .set_visible(current_fractal == fractal_type::MANDELBROT ||
+                           current_fractal == fractal_type::JULIA      ||
+                           current_fractal == fractal_type::BURNING_SHIP ||
+                           current_fractal == fractal_type::MULTIBROT   ||
+                           current_fractal == fractal_type::NOVA);
     jre_f.set_visible(current_fractal == fractal_type::JULIA);
     jim_f.set_visible(current_fractal == fractal_type::JULIA);
+    mn_f.set_visible(current_fractal == fractal_type::MULTIBROT);
 
     text_button apply_btn (font, "Apply",  100, 32);
     text_button cancel_btn(font, "Cancel", 100, 32);
@@ -185,7 +195,9 @@ void run_options_page(sf::RenderWindow& window, const app_settings& initial,
         const float col_x = 40;
         float y = 60;
         const float dy = 60;
-        size_dd.set_position(col_x, y); y += dy;
+        size_dd.set_position(col_x, y);
+        fullscreen_cb.set_position(col_x + 280, y + 28);  // right of size dropdown
+        y += dy;
         theme_dd.set_position(col_x, y); y += dy;
         pattern_dd.set_position(col_x, y); y += dy;
         max_iter_f.set_position(col_x, y);
@@ -193,13 +205,14 @@ void run_options_page(sf::RenderWindow& window, const app_settings& initial,
         smooth_cb.set_position(col_x, y); y += 40;
         jre_f.set_position(col_x, y);
         jim_f.set_position(col_x + 160, y); y += dy;
+        mn_f.set_position(col_x, y); y += dy;
 
         cancel_btn.set_position(ww - 230, wh - 60);
         apply_btn .set_position(ww - 120, wh - 60);
     };
     layout(window.getSize().x, window.getSize().y);
 
-    std::vector<widget*> base_widgets = {&smooth_cb, &max_iter_f, &zoom_f, &jre_f, &jim_f};
+    std::vector<widget*> base_widgets = {&smooth_cb, &max_iter_f, &zoom_f, &jre_f, &jim_f, &mn_f, &fullscreen_cb};
     std::vector<dropdown*> dd_widgets = {&size_dd, &theme_dd, &pattern_dd};
 
     auto current_settings = [&]() {
@@ -213,6 +226,13 @@ void run_options_page(sf::RenderWindow& window, const app_settings& initial,
         if (current_fractal == fractal_type::JULIA) {
             s.julia_c_re = jre_f.as_double(); s.julia_c_im = jim_f.as_double();
         }
+        if (current_fractal == fractal_type::MULTIBROT) {
+            int n = mn_f.as_int();
+            if (n < 2) n = 2;
+            if (n > 8) n = 8;
+            s.multibrot_n = n;
+        }
+        s.fullscreen = fullscreen_cb.checked();
         return s;
     };
 
@@ -230,6 +250,7 @@ void run_options_page(sf::RenderWindow& window, const app_settings& initial,
 
     bool done = false;
     while (!done && window.isOpen()) {
+        size_dd.set_enabled(!fullscreen_cb.checked());
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)       { attempt_exit(done); break; }

@@ -4,6 +4,8 @@ fractals
 cmake-build-debug-wsl
 cmake-build-release-wsl
 .patterns.txt
+assets/screenshots/
+NOTES.md
 *.o
 *.bak
 *.bak2

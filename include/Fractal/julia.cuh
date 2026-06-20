@@ -7,7 +7,7 @@
 __global__ void julia_kernel(uchar4* d_image, const Color* palette, int palette_size,
                              int width, int height,
                              double x_min, double x_max, double y_min, double y_max,
-                             int max_iter, double c_re, double c_im, bool smooth);
+                             int max_iter, double c_re, double c_im, bool smooth, int step);
 
 class julia : public fractal {
 public:

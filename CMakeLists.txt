@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(fractals)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SOURCE_FILES
     src/main.cpp
@@ -28,10 +28,14 @@ set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_86 -Wno-deprecated-gpu-targets"
 
 cuda_add_library(fractals_cuda
                  src/Fractal/fractal.cu
+                 src/Fractal/barnsley.cu
                  src/Fractal/burning_ship.cu
                  src/Fractal/julia.cu
+                 src/Fractal/lyapunov.cu
                  src/Fractal/mandelbrot.cu
+                 src/Fractal/multibrot.cu
                  src/Fractal/newton.cu
+                 src/Fractal/nova.cu
                  src/Fractal/palette.cu
                  src/Fractal/sierpinski.cu
 )

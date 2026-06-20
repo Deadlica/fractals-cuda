@@ -4,13 +4,15 @@
 __global__ void burning_ship_kernel(uchar4* d_image, const Color* palette, int palette_size,
                                     int width, int height,
                                     double x_min, double x_max, double y_min, double y_max,
-                                    int max_iter, bool smooth) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int idy = blockIdx.y * blockDim.y + threadIdx.y;
-    if (idx >= width || idy >= height) return;
+                                    int max_iter, bool smooth, int step) {
+    int bx = blockIdx.x * blockDim.x + threadIdx.x;
+    int by = blockIdx.y * blockDim.y + threadIdx.y;
+    int px = bx * step;
+    int py = by * step;
+    if (px >= width || py >= height) return;
 
-    double x0 = x_min + idx * (x_max - x_min) / width;
-    double y0 = y_min + idy * (y_max - y_min) / height;
+    double x0 = x_min + px * (x_max - x_min) / width;
+    double y0 = y_min + py * (y_max - y_min) / height;
     double x = 0.0, y = 0.0, x2 = 0.0, y2 = 0.0;
     int iter = 0;
     while (x2 + y2 <= 4.0 && iter < max_iter) {
@@ -22,15 +24,21 @@ __global__ void burning_ship_kernel(uchar4* d_image, const Color* palette, int p
         iter++;
     }
 
-    int pixel = idy * width + idx;
+    uchar4 color;
     if (iter >= max_iter) {
-        d_image[pixel] = make_uchar4(0, 0, 0, 255);
+        color = make_uchar4(0, 0, 0, 255);
     } else if (smooth) {
-        d_image[pixel] = smooth_color(iter, x2 + y2, palette, palette_size);
+        color = smooth_color(iter, x2 + y2, palette, palette_size);
     } else {
         Color c = palette[iter % palette_size];
-        d_image[pixel] = make_uchar4(c.r, c.g, c.b, 255);
+        color = make_uchar4(c.r, c.g, c.b, 255);
     }
+
+    int x_end = min(px + step, width);
+    int y_end = min(py + step, height);
+    for (int yy = py; yy < y_end; yy++)
+        for (int xx = px; xx < x_end; xx++)
+            d_image[yy * width + xx] = color;
 }
 
 burning_ship::burning_ship() : fractal() {}
@@ -39,14 +47,18 @@ void burning_ship::generate(const FractalParams& params) {
     int n = params.width * params.height;
     uchar4* d_image = device_image_buffer(n);
 
+    int step = params.step > 0 ? params.step : 1;
+    int grid_w = (params.width  + step - 1) / step;
+    int grid_h = (params.height + step - 1) / step;
+
     dim3 block(16, 16);
-    dim3 grid((params.width + block.x - 1) / block.x,
-              (params.height + block.y - 1) / block.y);
+    dim3 grid((grid_w + block.x - 1) / block.x,
+              (grid_h + block.y - 1) / block.y);
 
     burning_ship_kernel<<<grid, block>>>(
         d_image, PALETTE, PALETTE_SIZE, params.width, params.height,
         params.x_min, params.x_max, params.y_min, params.y_max,
-        params.max_iter, params.smooth
+        params.max_iter, params.smooth, step
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaMemcpy(params.h_image, d_image, n * sizeof(uchar4), cudaMemcpyDeviceToHost));

@@ -80,6 +80,7 @@ Options:
 
 Hotkeys:
     S       Save pattern coordinates
+    P       Save a PNG screenshot of the current view
     Home    Reset position
     Esc     Exit program / Open menu
 
